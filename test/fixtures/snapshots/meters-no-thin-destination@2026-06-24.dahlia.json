@@ -1,0 +1,142 @@
+{
+  "apiVersion": "2026-06-24.dahlia",
+  "auditScope": "deep",
+  "accountMode": "test",
+  "livemode": false,
+  "account": {
+    "id": "acct_deep",
+    "defaultAccountTaxIds": [
+      "txi_1"
+    ],
+    "statementDescriptor": "ACME INC",
+    "branding": {
+      "icon": "file_icon",
+      "logo": "file_logo"
+    },
+    "defaultAccountTaxIdsSet": true,
+    "chargesEnabled": true,
+    "requirements": null
+  },
+  "webhookEndpoints": [],
+  "prices": [
+    {
+      "id": "price_clean",
+      "active": true,
+      "taxBehavior": "exclusive",
+      "currency": "usd",
+      "unitAmount": 1500,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": "Pro monthly",
+      "lookupKey": "pro_monthly",
+      "customUnitAmount": null,
+      "currencyOptions": [],
+      "product": {
+        "id": "prod_clean",
+        "name": "Pro",
+        "active": true,
+        "defaultPrice": "price_clean"
+      }
+    }
+  ],
+  "portalConfigurations": [
+    {
+      "id": "bpc_clean",
+      "isDefault": true,
+      "customerUpdate": true,
+      "invoiceHistory": true,
+      "paymentMethodUpdate": true,
+      "subscriptionCancel": true,
+      "subscriptionUpdate": true,
+      "loginPage": true,
+      "subscriptionUpdateProration": "create_prorations"
+    }
+  ],
+  "taxSettings": {
+    "status": "active",
+    "defaultTaxBehavior": "exclusive"
+  },
+  "subscriptionSummary": {
+    "total": 2,
+    "byStatus": {
+      "active": 2
+    },
+    "byBillingMode": {
+      "flexible": 2
+    }
+  },
+  "meters": [
+    {
+      "id": "mtr_api",
+      "displayName": "API calls",
+      "status": "active",
+      "eventName": "api_call"
+    }
+  ],
+  "thinEventDestinations": [],
+  "radarSettings": null,
+  "coupons": [
+    {
+      "id": "co_welcome",
+      "name": "WELCOME10",
+      "percentOff": 10.0,
+      "amountOff": null,
+      "currency": null,
+      "duration": "once",
+      "valid": true
+    }
+  ],
+  "scopeProbe": [
+    {
+      "scope": "account",
+      "granted": true
+    },
+    {
+      "scope": "webhook_endpoints",
+      "granted": true
+    },
+    {
+      "scope": "prices",
+      "granted": true
+    },
+    {
+      "scope": "billing_portal",
+      "granted": true
+    },
+    {
+      "scope": "tax",
+      "granted": true
+    },
+    {
+      "scope": "subscriptions",
+      "granted": true
+    },
+    {
+      "scope": "meters",
+      "granted": true
+    },
+    {
+      "scope": "event_destinations",
+      "granted": true
+    },
+    {
+      "scope": "coupons",
+      "granted": true
+    }
+  ],
+  "truncated": [],
+  "_meta": {
+    "description": "Deep account with an active meter and no meter-error listener — triggers METER_ERROR_NOT_MONITORED only.",
+    "capturedAt": "2026-06-24T00:00:00Z",
+    "capturedApiVersion": "2026-06-24.dahlia",
+    "expectedRules": [
+      "METER_ERROR_NOT_MONITORED"
+    ],
+    "expectedSeverities": [
+      "high"
+    ]
+  }
+}

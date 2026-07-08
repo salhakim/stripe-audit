@@ -1,0 +1,405 @@
+{
+  "apiVersion": "2026-06-24.dahlia",
+  "auditScope": "base",
+  "accountMode": "live",
+  "livemode": false,
+  "account": {
+    "id": "acct_bad",
+    "defaultAccountTaxIds": [],
+    "statementDescriptor": null,
+    "branding": {
+      "icon": null,
+      "logo": null
+    },
+    "defaultAccountTaxIdsSet": false,
+    "chargesEnabled": false,
+    "requirements": {
+      "currentlyDue": [
+        "business_profile.url"
+      ],
+      "disabledReason": null
+    }
+  },
+  "webhookEndpoints": [
+    {
+      "id": "we_disabled",
+      "url": "https://a.example.com/h",
+      "status": "disabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_dup1",
+      "url": "https://dup.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_dup2",
+      "url": "https://dup.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_insecure",
+      "url": "http://insecure.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_localhost",
+      "url": "https://localhost:4000/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_oldver",
+      "url": "https://old.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": "2024-09-30.acacia",
+      "description": null
+    },
+    {
+      "id": "we_e6",
+      "url": "https://e6.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_e7",
+      "url": "https://e7.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_e8",
+      "url": "https://e8.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_e9",
+      "url": "https://e9.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_e10",
+      "url": "https://e10.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_e11",
+      "url": "https://e11.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    },
+    {
+      "id": "we_star",
+      "url": "https://star.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "*"
+      ],
+      "apiVersion": null,
+      "description": null
+    }
+  ],
+  "prices": [
+    {
+      "id": "priceA1",
+      "active": true,
+      "taxBehavior": null,
+      "currency": "usd",
+      "unitAmount": 1000,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": null,
+      "lookupKey": null,
+      "customUnitAmount": null,
+      "currencyOptions": [],
+      "product": {
+        "id": "prodA",
+        "name": "prodA",
+        "active": true,
+        "defaultPrice": null
+      }
+    },
+    {
+      "id": "priceA2",
+      "active": true,
+      "taxBehavior": "exclusive",
+      "currency": "usd",
+      "unitAmount": 1000,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": null,
+      "lookupKey": "a2",
+      "customUnitAmount": null,
+      "currencyOptions": [],
+      "product": {
+        "id": "prodA",
+        "name": "prodA",
+        "active": true,
+        "defaultPrice": null
+      }
+    },
+    {
+      "id": "priceB1",
+      "active": true,
+      "taxBehavior": "exclusive",
+      "currency": "usd",
+      "unitAmount": 0,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": null,
+      "lookupKey": "b1",
+      "customUnitAmount": null,
+      "currencyOptions": [],
+      "product": {
+        "id": "prodB",
+        "name": "prodB",
+        "active": true,
+        "defaultPrice": "priceB1"
+      }
+    },
+    {
+      "id": "priceC1",
+      "active": false,
+      "taxBehavior": "exclusive",
+      "currency": "usd",
+      "unitAmount": 1000,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": null,
+      "lookupKey": "c1",
+      "customUnitAmount": null,
+      "currencyOptions": [],
+      "product": {
+        "id": "prodC",
+        "name": "prodC",
+        "active": true,
+        "defaultPrice": "priceC1"
+      }
+    },
+    {
+      "id": "priceD1",
+      "active": true,
+      "taxBehavior": "exclusive",
+      "currency": "usd",
+      "unitAmount": null,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": null,
+      "lookupKey": "d1",
+      "customUnitAmount": {
+        "minimum": null
+      },
+      "currencyOptions": [],
+      "product": {
+        "id": "prodD",
+        "name": "prodD",
+        "active": true,
+        "defaultPrice": "priceD1"
+      }
+    },
+    {
+      "id": "priceE1",
+      "active": true,
+      "taxBehavior": "exclusive",
+      "currency": "usd",
+      "unitAmount": 1000,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": null,
+      "lookupKey": "e1",
+      "customUnitAmount": null,
+      "currencyOptions": [
+        "eur"
+      ],
+      "product": {
+        "id": "prodE",
+        "name": "prodE",
+        "active": true,
+        "defaultPrice": "priceE1"
+      }
+    },
+    {
+      "id": "priceE2",
+      "active": true,
+      "taxBehavior": "exclusive",
+      "currency": "eur",
+      "unitAmount": 1000,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": null,
+      "lookupKey": "e2",
+      "customUnitAmount": null,
+      "currencyOptions": [],
+      "product": {
+        "id": "prodE",
+        "name": "prodE",
+        "active": true,
+        "defaultPrice": "priceE1"
+      }
+    }
+  ],
+  "portalConfigurations": [
+    {
+      "id": "bpc_bad",
+      "isDefault": true,
+      "customerUpdate": false,
+      "invoiceHistory": false,
+      "paymentMethodUpdate": false,
+      "subscriptionCancel": false,
+      "subscriptionUpdate": true,
+      "loginPage": false,
+      "subscriptionUpdateProration": "none"
+    }
+  ],
+  "taxSettings": {
+    "status": "pending",
+    "defaultTaxBehavior": null
+  },
+  "subscriptionSummary": null,
+  "meters": null,
+  "thinEventDestinations": null,
+  "radarSettings": null,
+  "coupons": null,
+  "scopeProbe": [
+    {
+      "scope": "account",
+      "granted": true
+    },
+    {
+      "scope": "webhook_endpoints",
+      "granted": true
+    },
+    {
+      "scope": "prices",
+      "granted": true
+    },
+    {
+      "scope": "billing_portal",
+      "granted": true
+    },
+    {
+      "scope": "tax",
+      "granted": false
+    }
+  ],
+  "truncated": [],
+  "_meta": {
+    "description": "A maximally-broken base-scope account that trips every base-mode rule at least once — 30 distinct rule IDs across 32 findings spanning all five severities. Drives the all-issues golden case and the ALL_PRICES_INACTIVE path (carries an inactive price).",
+    "capturedAt": "2026-06-24T00:00:00Z",
+    "capturedApiVersion": "2026-06-24.dahlia",
+    "expectedSeverities": [
+      "critical",
+      "high",
+      "medium",
+      "low",
+      "info"
+    ],
+    "expectedRules": [
+      "ACCOUNT_CHARGES_DISABLED",
+      "ACCOUNT_REQUIREMENTS_DUE",
+      "ALL_PRICES_INACTIVE",
+      "CROSS_CURRENCY_PRICES",
+      "CUSTOM_UNIT_AMOUNT_NO_MINIMUM",
+      "DEFAULT_ACCOUNT_TAX_IDS_MISSING",
+      "DEFAULT_PRICE_MISSING_OR_INACTIVE",
+      "DEFAULT_TAX_BEHAVIOR_UNSET",
+      "EVENT_DESTINATIONS_NOT_AUDITED",
+      "LIVE_KEY_DETECTED_TEST",
+      "MULTIPLE_ACTIVE_PRICES_PER_PRODUCT",
+      "PORTAL_LOGIN_PAGE_DISABLED",
+      "PORTAL_NO_CANCEL_FLOW",
+      "PORTAL_NO_CUSTOMER_UPDATE",
+      "PORTAL_NO_INVOICE_HISTORY",
+      "PORTAL_PAYMENT_UPDATE_DISABLED",
+      "PORTAL_PRORATION_NONE_ON_UPDATE",
+      "PRICE_NO_LOOKUP_KEY",
+      "PRICE_TAX_BEHAVIOR_UNSPECIFIED",
+      "PRICE_ZERO_AMOUNT",
+      "RESTRICTED_KEY_PERMISSION_PROBE",
+      "STATEMENT_DESCRIPTOR_MISSING",
+      "TAX_SETTINGS_PENDING",
+      "UNBRANDED_RECEIPTS",
+      "WEBHOOK_API_VERSION_MISMATCH",
+      "WEBHOOK_DUPLICATE_URL",
+      "WEBHOOK_ENDPOINT_DISABLED",
+      "WEBHOOK_INSECURE_URL",
+      "WEBHOOK_SELECT_ALL",
+      "WEBHOOK_TEST_ENDPOINT_IN_LIVE",
+      "WEBHOOK_TOO_MANY_ENDPOINTS"
+    ]
+  }
+}

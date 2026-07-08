@@ -1,0 +1,42 @@
+# stripe-audit — gitleaks ruleset.
+#
+# This file SHIPS in the public repo. Both secret-scan gates load it so they scan
+# with an IDENTICAL ruleset:
+#   - .husky/pre-commit            → `gitleaks git --staged --config .gitleaks.toml`  (canonical, shipped)
+#   - .claude/.../gitleaks-guard.sh → same command, framework-local defense-in-depth
+#
+# It extends gitleaks' built-in ruleset (which already catches sk_live_/rk_live_/
+# rk_test_ via `stripe-access-token`) and adds the families the defaults miss.
+
+title = "stripe-audit"
+
+[extend]
+useDefault = true
+
+# ── Project credential families not covered by gitleaks defaults ───────────────
+[[rules]]
+id = "stripe-webhook-signing-secret"
+description = "Stripe webhook signing secret (whsec_…) — gitleaks defaults do NOT catch this"
+regex = '''whsec_[0-9a-zA-Z]{32,}'''
+keywords = ["whsec_"]
+
+  [rules.allowlist]
+  # Don't flag the documented placeholder form.
+  regexes = ['''whsec_(your|example|test)_[a-z_]*''']
+
+# ── Global allowlist: docs, examples, and placeholders are not leaks ────────────
+[allowlist]
+description = "stripe-audit allowlist — committed examples and docs are not secrets"
+paths = [
+  '''\.env\.example$''',
+  '''(^|/)README\.md$''',
+  '''(^|/)CHANGELOG\.md$''',
+  '''(^|/)docs/''',
+  '''(^|/)learnings/stack-documentation/''',
+  '''(^|/)PRD\.json$''',
+]
+regexes = [
+  '''(?i)(sk|rk)_(test|live)_your_[a-z_]*''',
+  '''(?i)your[-_](restricted[-_]?readonly[-_]?|test[-_]?|secret[-_]?)?key[-_]?here''',
+  '''(?i)example[-_](token|key|secret)''',
+]

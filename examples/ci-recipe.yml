@@ -1,0 +1,38 @@
+# Example consumer CI recipe — gate a build on your Stripe billing config.
+#
+# Copy this to .github/workflows/stripe-audit.yml in your own repo. It runs the
+# published `npx stripe-audit` CLI (no checkout of this project required) and
+# fails the build when a NEW billing misconfiguration regresses past a committed
+# baseline. See README.md § "Continuous integration (CI) usage" for the full
+# adoption funnel (baseline → gate on regressions → adopt the Action in v0.2).
+#
+# Prerequisites in your repo:
+#   1. A restricted Stripe API key stored as an encrypted Actions secret named
+#      STRIPE_AUDIT_RESTRICTED_KEY (read-only scopes — see README § "The key").
+#   2. A committed baseline: run once locally and commit the file —
+#        STRIPE_SECRET_KEY=... npx stripe-audit \
+#          --write-baseline .stripe-audit-baseline.json
+#   3. (Optional) a .stripeauditignore at your repo root to accept known
+#      findings — see examples/.stripeauditignore in this package.
+
+name: stripe-audit
+on: [push, workflow_dispatch]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Audit Stripe billing config
+        # --baseline exits non-zero ONLY on a new finding vs the committed
+        # baseline (a score drop alone stays green). Drop --baseline to gate on
+        # absolute severity instead. --output markdown feeds a rendered report to
+        # the run summary; --fail-on high fails the job on any high+ finding.
+        run: |
+          npx stripe-audit \
+            --baseline .stripe-audit-baseline.json \
+            --output markdown \
+            --fail-on high >> "$GITHUB_STEP_SUMMARY"
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_AUDIT_RESTRICTED_KEY }}

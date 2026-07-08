@@ -1,0 +1,20 @@
+# docker-compose.yml — local services for stripe-audit development.
+#
+# Brings up the stripe-mock that the integration suite (test/fetcher.test.ts)
+# drives over HTTP on :12111. The image is pinned by tag + digest so a local run
+# and CI exercise the IDENTICAL mock — .github/workflows/ci.yml pins the same
+# reference in its `services.stripe-mock`. Dependabot's `docker` ecosystem opens
+# PRs to bump the pin HERE; mirror any bump into ci.yml in the SAME PR (GitHub
+# Actions service-container image tags are not auto-scanned). See the coupled-pin
+# note in .github/dependabot.yml.
+#
+# Usage:
+#   npm run stripe-mock:up        # start (waits until the container is running)
+#   npm run test:integration      # run the live fetcher tests (fails if mock is down)
+#   npm run stripe-mock:down      # stop
+services:
+  stripe-mock:
+    image: stripe/stripe-mock:v0.201.0@sha256:6a3fbbb37639a15525f8df5ae6995a9da21d5e827b897898a47a88e2b6e3790b
+    ports:
+      - "12111:12111" # HTTP  — STRIPE_MOCK_HOST/PORT in test/fetcher.test.ts
+      - "12112:12112" # HTTPS — unused by the suite; exposed for parity

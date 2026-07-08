@@ -1,0 +1,309 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderHtml — self-contained PRIMARY visual > matches the committed snapshot 1`] = `
+"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stripe Audit Report</title>
+<style>:root { color-scheme: light dark; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 2rem; line-height: 1.5; }
+  header { border-bottom: 2px solid #8884; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  .score { font-size: 2.5rem; font-weight: 700; }
+  .grade-A { color: #1a7f37; } .grade-B { color: #1f883d; } .grade-C { color: #9a6700; }
+  .grade-D { color: #bc4c00; } .grade-F { color: #cf222e; }
+  .filters { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .finding { border: 1px solid #8884; border-radius: 8px; padding: 1rem; margin: 0.75rem 0; }
+  .sev-critical { border-left: 5px solid #cf222e; } .sev-high { border-left: 5px solid #bc4c00; }
+  .sev-medium { border-left: 5px solid #9a6700; } .sev-low { border-left: 5px solid #0969da; }
+  .sev-info { border-left: 5px solid #6e7781; }
+  .badge { font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+  .meta { color: #6e7781; font-size: 0.85rem; }
+  code { background: #8882; padding: 0.1em 0.3em; border-radius: 4px; }
+  .coverage-partial { border: 1px solid #bc4c00; background: #bc4c001a; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; }
+  .coverage-full { color: #6e7781; font-size: 0.85rem; margin: 0 0 1.5rem; }</style>
+</head>
+<body>
+<header>
+  <div class="score grade-F">0 / 100 &middot; Grade F</div>
+  <p class="meta">Stripe API 2026-06-24.dahlia &middot; account live &middot; 2026-06-24T00:00:00.000Z</p>
+  <p class="meta">32 active findings &middot; rules run 35 &middot; passed 4</p>
+</header>
+<p class="coverage coverage-full">Full audit — every region scanned within limits.</p>
+<div class="filters">
+  <label>Filter by severity <select id="filter-severity"><option value="all">All severities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="info">Info</option></select></label>
+  <label>Filter by category <select id="filter-category"><option value="all">All categories</option><option value="webhooks">webhooks</option><option value="billing">billing</option><option value="pricing">pricing</option><option value="configuration">configuration</option><option value="security">security</option></select></label>
+</div>
+
+<main>
+<section class="band band-critical">
+<h2>Critical (1)</h2>
+<article class="finding sev-critical" data-severity="critical" data-category="webhooks">
+  <h3>Webhook endpoint subscribes to all events (*)</h3>
+  <p class="meta"><span class="badge">Critical</span> · webhooks · rule WEBHOOK_SELECT_ALL</p>
+  <p class="desc">Enabled endpoint https://star.example.com/hook subscribes to all event types (\`*\`). A blanket subscription hides which revenue-critical events are actually consumed, so a silently dropped \`invoice.payment_failed\` looks identical to an event you never wanted.</p>
+<p class="impact">Impact: Masked delivery failures of billing events can silently leak recurring revenue.</p>
+  <p class="fix"><strong>Fix:</strong> Subscribe each endpoint to the explicit list of events it handles. Reserve \`*\` for debugging, never production billing.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/webhooks">Stripe docs &rarr;</a></p>
+</article>
+</section>
+<section class="band band-high">
+<h2>High (8)</h2>
+<article class="finding sev-high" data-severity="high" data-category="webhooks">
+  <h3>Webhook endpoint is disabled</h3>
+  <p class="meta"><span class="badge">High</span> · webhooks · rule WEBHOOK_ENDPOINT_DISABLED</p>
+  <p class="desc">Endpoint https://a.example.com/h is disabled, so every event it subscribes to is currently dropped. Stripe disables endpoints automatically after repeated delivery failures.</p>
+  <p class="fix"><strong>Fix:</strong> Re-enable the endpoint once the receiver is healthy, or delete it if it is obsolete so it no longer reads as a coverage gap.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/webhooks/best-practices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-high" data-severity="high" data-category="webhooks">
+  <h3>Insecure (non-HTTPS) webhook URL</h3>
+  <p class="meta"><span class="badge">High</span> · webhooks · rule WEBHOOK_INSECURE_URL</p>
+  <p class="desc">Endpoint http://insecure.example.com/hook uses a non-HTTPS scheme on a live account. Event payloads (including signing material) travel unencrypted and can be intercepted or tampered with.</p>
+  <p class="fix"><strong>Fix:</strong> Serve the receiver over HTTPS and update the endpoint URL to an \`https://\` origin.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/webhooks/best-practices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-high" data-severity="high" data-category="webhooks">
+  <h3>Test/local webhook endpoint on a live account</h3>
+  <p class="meta"><span class="badge">High</span> · webhooks · rule WEBHOOK_TEST_ENDPOINT_IN_LIVE</p>
+  <p class="desc">Endpoint https://localhost:4000/hook targets a local or tunnel host (e.g. localhost / ngrok / *.test) on a live account. Live events are being routed to a development target — they will be lost in production.</p>
+  <p class="fix"><strong>Fix:</strong> Point live endpoints at a production HTTPS origin. Use test-mode keys and local tunnels for development, never the live account.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/webhooks/best-practices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-high" data-severity="high" data-category="billing">
+  <h3>Customer portal does not allow payment method updates</h3>
+  <p class="meta"><span class="badge">High</span> · billing · rule PORTAL_PAYMENT_UPDATE_DISABLED</p>
+  <p class="desc">The default portal disables payment-method updates, so customers with an expiring or failing card cannot fix it themselves — a leading cause of involuntary churn.</p>
+  <p class="fix"><strong>Fix:</strong> Enable &quot;Customer can update their payment methods&quot; on the default portal configuration.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/customer-management">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-high" data-severity="high" data-category="pricing">
+  <h3>Active product has no active price</h3>
+  <p class="meta"><span class="badge">High</span> · pricing · rule ALL_PRICES_INACTIVE</p>
+  <p class="desc">Product prodC (prodC) is active but every one of its prices is inactive. The product cannot be purchased — any checkout or payment link for it fails.</p>
+<p class="impact">Impact: An active, unsellable product silently blocks every purchase attempt for it.</p>
+  <p class="fix"><strong>Fix:</strong> Activate a price for the product, or archive the product if it is no longer sold.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-high" data-severity="high" data-category="security">
+  <h3>Live-mode key is seeing test data</h3>
+  <p class="meta"><span class="badge">High</span> · security · rule LIVE_KEY_DETECTED_TEST</p>
+  <p class="desc">The audit key has a live prefix but the account responses report livemode=false. The key/environment is mismatched — results will not reflect your production configuration.</p>
+  <p class="fix"><strong>Fix:</strong> Use a key whose prefix matches the environment you intend to audit.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/keys">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-high" data-severity="high" data-category="security">
+  <h3>Account is not able to create charges</h3>
+  <p class="meta"><span class="badge">High</span> · security · rule ACCOUNT_CHARGES_DISABLED</p>
+  <p class="desc">The account reports it cannot currently create charges. Every payment attempt will fail until this is resolved — usually an onboarding or verification gap.</p>
+<p class="impact">Impact: While charges are disabled, 100% of payment attempts fail.</p>
+  <p class="fix"><strong>Fix:</strong> Complete account onboarding / verification in the Stripe Dashboard so charges are enabled.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/api/accounts">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-high" data-severity="high" data-category="security">
+  <h3>Account has outstanding requirements</h3>
+  <p class="meta"><span class="badge">High</span> · security · rule ACCOUNT_REQUIREMENTS_DUE</p>
+  <p class="desc">Stripe reports outstanding account requirements (currently due: business_profile.url). Unmet requirements can disable charges or payouts, interrupting revenue.</p>
+  <p class="fix"><strong>Fix:</strong> Submit the outstanding requirements in the Stripe Dashboard before they disable the account.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/api/accounts">Stripe docs &rarr;</a></p>
+</article>
+</section>
+<section class="band band-medium">
+<h2>Medium (15)</h2>
+<article class="finding sev-medium" data-severity="medium" data-category="webhooks">
+  <h3>Unusually many enabled webhook endpoints (12)</h3>
+  <p class="meta"><span class="badge">Medium</span> · webhooks · rule WEBHOOK_TOO_MANY_ENDPOINTS</p>
+  <p class="desc">12 enabled webhook endpoints exceed the advisory threshold of 10. A sprawl of endpoints is hard to keep version-consistent and is often a sign of stale test/integration endpoints left in place.</p>
+  <p class="fix"><strong>Fix:</strong> Audit the endpoint list and remove any that are no longer needed. Set \`options.threshold\` to tune this advisory for your integration.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/api/webhook_endpoints">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="webhooks">
+  <h3>Duplicate webhook endpoint URL</h3>
+  <p class="meta"><span class="badge">Medium</span> · webhooks · rule WEBHOOK_DUPLICATE_URL</p>
+  <p class="desc">2 enabled endpoints deliver to the same URL https://dup.example.com/hook. Duplicate endpoints double-deliver every event and usually mean a forgotten copy is still live.</p>
+  <p class="fix"><strong>Fix:</strong> Consolidate to a single endpoint per URL and delete the duplicates, or give each a distinct URL if duplication is intentional.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/api/webhook_endpoints">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="webhooks">
+  <h3>Webhook endpoint pinned to an outdated API version</h3>
+  <p class="meta"><span class="badge">Medium</span> · webhooks · rule WEBHOOK_API_VERSION_MISMATCH</p>
+  <p class="desc">Endpoint https://old.example.com/hook is pinned to API version 2024-09-30.acacia, older than the latest Stripe release the audit knows (2026-06-24.dahlia). Pinned endpoints receive event shapes from an older release, which drift from newer integration code.</p>
+  <p class="fix"><strong>Fix:</strong> Upgrade the endpoint to the latest API version after confirming your handler tolerates the newer event shapes, or intentionally re-pin it.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/upgrades">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="billing">
+  <h3>Customer portal does not offer self-serve cancellation</h3>
+  <p class="meta"><span class="badge">Medium</span> · billing · rule PORTAL_NO_CANCEL_FLOW</p>
+  <p class="desc">The default portal disables subscription cancellation. Forcing cancellations through support frustrates customers and risks chargebacks / disputes.</p>
+  <p class="fix"><strong>Fix:</strong> Enable &quot;Customer can cancel subscriptions&quot; on the default portal configuration.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/customer-management">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="billing">
+  <h3>Customer portal does not show invoice history</h3>
+  <p class="meta"><span class="badge">Medium</span> · billing · rule PORTAL_NO_INVOICE_HISTORY</p>
+  <p class="desc">The default portal hides invoice history, so customers cannot self-serve receipts and billing records — a recurring support burden.</p>
+  <p class="fix"><strong>Fix:</strong> Enable &quot;Customer can view their invoice history&quot; on the default portal configuration.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/customer-management">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="billing">
+  <h3>Customer portal does not allow customer detail updates</h3>
+  <p class="meta"><span class="badge">Medium</span> · billing · rule PORTAL_NO_CUSTOMER_UPDATE</p>
+  <p class="desc">The default portal disables customer-detail updates (email, address, tax ID), so customers cannot keep their billing information current.</p>
+  <p class="fix"><strong>Fix:</strong> Enable &quot;Customer can update their information&quot; on the default portal configuration.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/customer-management">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="billing">
+  <h3>Portal plan changes apply no proration</h3>
+  <p class="meta"><span class="badge">Medium</span> · billing · rule PORTAL_PRORATION_NONE_ON_UPDATE</p>
+  <p class="desc">The default portal allows subscription updates but sets proration to &#39;none&#39;. Mid-cycle upgrades are not charged the prorated difference, leaking revenue on every in-portal plan change.</p>
+  <p class="fix"><strong>Fix:</strong> Set the portal&#39;s subscription-update proration behavior to &#39;create_prorations&#39; (or &#39;always_invoice&#39;) so upgrades are billed correctly.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/customer-management">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="pricing">
+  <h3>Active price is set to zero</h3>
+  <p class="meta"><span class="badge">Medium</span> · pricing · rule PRICE_ZERO_AMOUNT</p>
+  <p class="desc">Price priceB1 is active with a unit amount of 0 USD. If this is not an intentional free tier, the product is being given away.</p>
+  <p class="fix"><strong>Fix:</strong> Confirm the zero amount is intentional; otherwise set a non-zero unit amount.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="pricing">
+  <h3>Product default price missing or inactive</h3>
+  <p class="meta"><span class="badge">Medium</span> · pricing · rule DEFAULT_PRICE_MISSING_OR_INACTIVE</p>
+  <p class="desc">Product prodA (prodA) has no default price set. Stripe requires the default price to be an active price; payment links and Checkout that rely on it will misbehave.</p>
+  <p class="fix"><strong>Fix:</strong> Set the product default price to an active price.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="pricing">
+  <h3>Product default price missing or inactive</h3>
+  <p class="meta"><span class="badge">Medium</span> · pricing · rule DEFAULT_PRICE_MISSING_OR_INACTIVE</p>
+  <p class="desc">Product prodC (prodC) points at inactive price priceC1. Stripe requires the default price to be an active price; payment links and Checkout that rely on it will misbehave.</p>
+  <p class="fix"><strong>Fix:</strong> Set the product default price to an active price.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="pricing">
+  <h3>Active price has unspecified tax behavior</h3>
+  <p class="meta"><span class="badge">Medium</span> · pricing · rule PRICE_TAX_BEHAVIOR_UNSPECIFIED</p>
+  <p class="desc">Price priceA1 is active with tax_behavior unspecified. Stripe cannot tell whether the amount is tax-inclusive or exclusive, risking incorrect tax on every charge.</p>
+  <p class="fix"><strong>Fix:</strong> Set the price&#39;s tax_behavior to &#39;inclusive&#39; or &#39;exclusive&#39;.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/tax">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="pricing">
+  <h3>Customer-chosen price has no minimum</h3>
+  <p class="meta"><span class="badge">Medium</span> · pricing · rule CUSTOM_UNIT_AMOUNT_NO_MINIMUM</p>
+  <p class="desc">Price priceD1 lets the customer choose the amount (custom_unit_amount) but sets no minimum. Customers can pay arbitrarily little — including effectively nothing.</p>
+  <p class="fix"><strong>Fix:</strong> Set a minimum on the custom unit amount so pay-what-you-want has a floor.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="configuration">
+  <h3>No default tax behavior configured</h3>
+  <p class="meta"><span class="badge">Medium</span> · configuration · rule DEFAULT_TAX_BEHAVIOR_UNSET</p>
+  <p class="desc">Stripe Tax is set up but has no default tax behavior (inclusive/exclusive). Prices without an explicit tax behavior fall back to ambiguous handling.</p>
+  <p class="fix"><strong>Fix:</strong> Set a default tax behavior (&#39;inclusive&#39; or &#39;exclusive&#39;) in your Stripe Tax settings.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/tax/set-up">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="configuration">
+  <h3>Stripe Tax onboarding is incomplete</h3>
+  <p class="meta"><span class="badge">Medium</span> · configuration · rule TAX_SETTINGS_PENDING</p>
+  <p class="desc">Stripe Tax status is pending — onboarding (origin address, default tax code) is unfinished, so automatic tax is not fully active.</p>
+  <p class="fix"><strong>Fix:</strong> Finish Stripe Tax onboarding (origin address + default product tax code) to move status to active.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/tax/set-up">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-medium" data-severity="medium" data-category="configuration">
+  <h3>No statement descriptor configured</h3>
+  <p class="meta"><span class="badge">Medium</span> · configuration · rule STATEMENT_DESCRIPTOR_MISSING</p>
+  <p class="desc">No statement descriptor is set, so charges may appear on customer card statements without a recognizable name — a leading cause of &quot;I don’t recognize this charge&quot; disputes and chargebacks.</p>
+  <p class="fix"><strong>Fix:</strong> Set a clear statement descriptor in the Stripe Dashboard (Settings → Public details / Payments).</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/api/accounts">Stripe docs &rarr;</a></p>
+</article>
+</section>
+<section class="band band-low">
+<h2>Low (6)</h2>
+<article class="finding sev-low" data-severity="low" data-category="billing">
+  <h3>Customer portal hosted login page is disabled</h3>
+  <p class="meta"><span class="badge">Low</span> · billing · rule PORTAL_LOGIN_PAGE_DISABLED</p>
+  <p class="desc">The default portal has the hosted login page off, so there is no shareable self-serve URL — every portal visit must be deep-linked from your app.</p>
+  <p class="fix"><strong>Fix:</strong> Enable the hosted login page on the default portal configuration if you want a standalone portal URL.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/customer-management">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-low" data-severity="low" data-category="pricing">
+  <h3>Active recurring price has no lookup key</h3>
+  <p class="meta"><span class="badge">Low</span> · pricing · rule PRICE_NO_LOOKUP_KEY</p>
+  <p class="desc">Price priceA1 is active and recurring but has no lookup_key. Referencing prices by raw id is brittle — a lookup_key lets you swap the underlying price without a code change.</p>
+  <p class="fix"><strong>Fix:</strong> Assign a stable lookup_key to the price so your integration references it by key, not id.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-low" data-severity="low" data-category="pricing">
+  <h3>Multiple active prices for the same product and cadence</h3>
+  <p class="meta"><span class="badge">Low</span> · pricing · rule MULTIPLE_ACTIVE_PRICES_PER_PRODUCT</p>
+  <p class="desc">Product prodA has more than one active price for the same currency, billing cadence, and amount shape. Stripe&#39;s convention is exactly one canonical active price per cadence; duplicates make &quot;the price&quot; ambiguous.</p>
+  <p class="fix"><strong>Fix:</strong> Archive the redundant prices, keeping one canonical active price per currency/cadence/amount (grandfathered prices aside).</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-low" data-severity="low" data-category="pricing">
+  <h3>Product mixes multi-currency mechanisms</h3>
+  <p class="meta"><span class="badge">Low</span> · pricing · rule CROSS_CURRENCY_PRICES</p>
+  <p class="desc">Product prodE has active prices in multiple base currencies AND prices using currency_options. Mixing per-currency Price objects with on-price currency_options makes &quot;which price applies&quot; ambiguous and easy to misconfigure.</p>
+  <p class="fix"><strong>Fix:</strong> Pick one multi-currency mechanism per product — either separate Price objects per currency, or a single price with currency_options.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/products-prices/manage-prices">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-low" data-severity="low" data-category="configuration">
+  <h3>Account branding (icon/logo) not configured</h3>
+  <p class="meta"><span class="badge">Low</span> · configuration · rule UNBRANDED_RECEIPTS</p>
+  <p class="desc">The account has neither a branding icon nor a logo, so receipts, invoices, and the customer portal render unbranded — eroding trust and increasing dispute risk.</p>
+  <p class="fix"><strong>Fix:</strong> Upload a branding icon and/or logo in the Stripe Dashboard (Settings → Branding).</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/api/accounts">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-low" data-severity="low" data-category="configuration">
+  <h3>No default account tax IDs configured for invoices</h3>
+  <p class="meta"><span class="badge">Low</span> · configuration · rule DEFAULT_ACCOUNT_TAX_IDS_MISSING</p>
+  <p class="desc">No default account tax IDs are set, so your business tax registration number does not appear on invoices — a compliance gap in many jurisdictions.</p>
+  <p class="fix"><strong>Fix:</strong> Set default account tax IDs in your invoice settings so they appear on every invoice.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/api/accounts">Stripe docs &rarr;</a></p>
+</article>
+</section>
+<section class="band band-info">
+<h2>Info (2)</h2>
+<article class="finding sev-info" data-severity="info" data-category="configuration">
+  <h3>v2 event destinations were not audited</h3>
+  <p class="meta"><span class="badge">Info</span> · configuration · rule EVENT_DESTINATIONS_NOT_AUDITED</p>
+  <p class="desc">This audit covers classic /v1/webhook_endpoints only. If you also use v2 event destinations (&quot;thin events&quot;), they are not included in this report.</p>
+  <p class="fix"><strong>Fix:</strong> Review v2 event destinations separately in the Stripe Dashboard if your integration uses them.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/event-destinations">Stripe docs &rarr;</a></p>
+</article>
+<article class="finding sev-info" data-severity="info" data-category="security">
+  <h3>Restricted key did not grant every read scope</h3>
+  <p class="meta"><span class="badge">Info</span> · security · rule RESTRICTED_KEY_PERMISSION_PROBE</p>
+  <p class="desc">The audit key could not read: tax. Rules over those regions were skipped, so this audit is partial. (This is expected if you intentionally scoped the key narrower than the audit&#39;s 6 read regions.)</p>
+  <p class="fix"><strong>Fix:</strong> Grant the key read access to tax for a complete audit, or accept the reduced coverage.</p>
+  <p><a class="docs-link" data-docs="https://docs.stripe.com/keys#create-restricted-api-secret-key">Stripe docs &rarr;</a></p>
+</article>
+</section>
+</main>
+<section class="skipped"><h2>Skipped rules</h2><ul><li><code>BILLING_MODE_NOT_MIGRATED</code> — requires-deep</li><li><code>METER_ERROR_NOT_MONITORED</code> — requires-deep</li><li><code>HIGH_PERCENT_COUPON</code> — requires-deep</li><li><code>HIGH_AMOUNT_COUPON</code> — requires-deep</li><li><code>FOREVER_COUPON_STILL_VALID</code> — requires-deep</li></ul></section>
+<section class="suppressed"><h2>Suppressed (0)</h2><p>No findings were suppressed.</p></section>
+<script>(function () {
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.finding'));
+    var sev = document.getElementById('filter-severity');
+    var cat = document.getElementById('filter-category');
+    function apply() {
+      var s = sev ? sev.value : 'all';
+      var c = cat ? cat.value : 'all';
+      cards.forEach(function (el) {
+        var okS = s === 'all' || el.getAttribute('data-severity') === s;
+        var okC = c === 'all' || el.getAttribute('data-category') === c;
+        el.style.display = okS && okC ? '' : 'none';
+      });
+    }
+    if (sev) sev.addEventListener('change', apply);
+    if (cat) cat.addEventListener('change', apply);
+    Array.prototype.slice.call(document.querySelectorAll('a.docs-link')).forEach(function (a) {
+      var u = a.getAttribute('data-docs');
+      // Only http(s) URLs become clickable — never javascript:/data: (defense in
+      // depth against a future plugin rule supplying a hostile docsUrl).
+      if (u && /^https?:///i.test(u)) { a.setAttribute('href', u); a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer'); }
+    });
+  })();</script>
+</body>
+</html>"
+`;

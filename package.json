@@ -1,0 +1,105 @@
+{
+  "name": "stripe-audit",
+  "version": "0.2.0",
+  "description": "A read-only Stripe billing audit & lint CLI — scans a Stripe account and reports revenue-losing misconfigurations as severity-ranked findings.",
+  "keywords": [
+    "stripe",
+    "billing",
+    "audit",
+    "lint",
+    "cli",
+    "subscriptions",
+    "webhooks"
+  ],
+  "license": "MIT",
+  "author": "Sal Hakim (Atlas Maps) <6118103+salhakim@users.noreply.github.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/salhakim/stripe-audit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/salhakim/stripe-audit/issues"
+  },
+  "homepage": "https://github.com/salhakim/stripe-audit#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "commonjs",
+  "bin": {
+    "stripe-audit": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "action.yml",
+    "scripts/stripe-audit-sticky-comment.cjs",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "COVERAGE.md",
+    "docs",
+    "examples",
+    "schemas"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "STRIPE_MOCK=require vitest run test/fetcher.test.ts",
+    "check:docs": "node scripts/check-docs-drift.mjs",
+    "check:bytes": "node scripts/check-text-integrity.mjs",
+    "stripe-mock:up": "docker compose up -d --wait stripe-mock",
+    "stripe-mock:down": "docker compose down",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "export:public": "bash scripts/export-public.sh",
+    "verify:export": "bash scripts/verify-export-clean.sh",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.0",
+    "stripe": "^22.3.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^10.6.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.9.1",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.62.0",
+    "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  }
+}

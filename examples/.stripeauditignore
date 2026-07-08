@@ -1,0 +1,37 @@
+# Example .stripeauditignore — suppress known/accepted stripe-audit findings.
+#
+# Copy this file to your repo root (next to package.json). stripe-audit reads
+# ./.stripeauditignore automatically; the same patterns can also be passed with
+# repeatable --ignore <pattern> flags. Suppressed findings are still counted in
+# the report's "suppressed" tally — they just don't affect the score or the
+# --fail-on exit code.
+#
+# Syntax is gitignore-style: one pattern per line; blank lines and lines
+# starting with `#` are ignored. Three forms:
+#
+#   RULE_ID                 suppress EVERY finding of that rule
+#   :resource_id            suppress EVERY finding on that resource (also `*:resource_id`)
+#   RULE_ID:resource_id     suppress ONLY that rule on that one resource (narrowest)
+#
+# Run `npx stripe-audit --list-rules` to see every rule id.
+# An unmatched pattern is reported as an info-level warning on stderr and never
+# changes the exit code, so stale suppressions surface instead of hiding silently.
+
+# ── By rule id ────────────────────────────────────────────────────────────────
+# We intentionally ship unbranded receipts while the brand assets are in review.
+UNBRANDED_RECEIPTS
+
+# Statement descriptor is set at the platform level, not per-account — accepted.
+STATEMENT_DESCRIPTOR_MISSING
+
+# ── By resource ─────────────────────────────────────────────────────────────
+# A legacy webhook endpoint kept alive for one partner; suppress all its findings.
+:we_00000000legacyEXAMPLE
+
+# ── By rule + resource (narrowest — preferred) ─────────────────────────────────
+# This one archived price is deliberately missing a lookup key; don't flag it,
+# but DO keep flagging the rule everywhere else.
+PRICE_NO_LOOKUP_KEY:price_00000000archivedEX
+
+# A single product legitimately has two active prices (grandfathered plan).
+MULTIPLE_ACTIVE_PRICES_PER_PRODUCT:prod_00000000grandfEX

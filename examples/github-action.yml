@@ -1,0 +1,52 @@
+# Example consumer workflow — adopt the published stripe-audit GitHub Action.
+#
+# Copy this to .github/workflows/stripe-audit.yml in your own repo to gate PRs on
+# your Stripe billing hygiene and get a single self-updating "score" comment on
+# each pull request.
+#
+# Prerequisites in your repo:
+#   1. A restricted, read-only Stripe API key stored as an encrypted Actions
+#      secret named STRIPE_AUDIT_KEY (see README § "Restricted read-only key setup").
+#   2. (Optional) a committed baseline (`--write-baseline`) and/or a
+#      .stripeauditignore at your repo root to accept known findings.
+name: stripe-audit
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# `pull-requests: write` is LOAD-BEARING — the sticky PR comment silently no-ops
+# without it. `contents: read` is all the checkout needs.
+permissions:
+  contents: read
+  pull-requests: write
+
+# Serialize runs per PR/branch so two rapid pushes can't race the sticky comment's
+# find-or-update (both seeing "no comment yet" and each CREATING one → duplicates).
+# cancel-in-progress also saves CI minutes by superseding an in-flight audit.
+concurrency:
+  group: stripe-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Audit Stripe billing config
+        id: stripe-audit
+        # Pin to a released tag or major for reproducible CI.
+        uses: salhakim/stripe-audit@v0
+        with:
+          api-key: ${{ secrets.STRIPE_AUDIT_KEY }}
+          fail-on: high
+          # baseline: .stripe-audit-baseline.json
+          #   ^ gate on NEW findings vs a committed baseline. When set, `baseline`
+          #     REPLACES the `fail-on` severity gate (see README § GitHub Action).
+
+      # The Action also exposes `score` (0–100) and `grade` (A–F) outputs.
+      - name: Show the audit score
+        if: always()
+        run: echo "Stripe audit score=${{ steps.stripe-audit.outputs.score }} grade=${{ steps.stripe-audit.outputs.grade }}"

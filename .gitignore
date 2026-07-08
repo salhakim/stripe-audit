@@ -1,0 +1,84 @@
+# ── private / framework footprint (LOCAL ONLY — never committed to the public repo) ──
+# The framework is the *process*, not the product. None of it ships publicly:
+# a `git ls-files` on the public repo must return only shipped product code.
+#
+# IMPORTANT: a .gitignore does NOT untrack files already in git history. If the
+# framework footprint was ever committed (it is, in a molded-in-place project),
+# this file is necessary but NOT sufficient — the public repo must be created
+# with a FRESH git history (a clean `git init` exporting only product files),
+# then verified with `git ls-files` + a content grep for framework branding.
+#
+# Two independent IP controls (see ARCHITECTURE.md §9): (1) the framework source
+# carries zero proprietary literals, and (2) this gitignore + a fresh history keep
+# the whole framework footprint out of the public repo.
+
+# Engineering instructions + the single integration point + the backlog
+CLAUDE.md
+framework.config.json
+PRD.json
+
+# Copied skills, adapters, scripts, doctrine, hooks, markers, reports, plugins,
+# commands — the whole tree is local-only.
+.claude/
+
+# Recon / inventory artifacts (never ship)
+.secret-manifest.tsv
+.librarian-fingerprint
+LIBRARIAN.md
+
+# Knowledge substrate (discipline is portable; content is local). Includes the
+# camp-0 engineering-spec / North-Star notes under learnings/.
+knowledge-map.md
+progress.txt
+secops.md
+learnings/
+stack-documentation/
+
+# Local SQLite stores (memory db, etc.)
+*.db
+*.db-wal
+*.db-shm
+
+# Local environment (the .env.example template stays committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Framework-dev meta (NEVER ship — these document / build / attribute the
+#    framework itself). NOTE: CREDITS.md and NOTICE credit the Atlas framework,
+#    so they are IGNORED here. The product keeps its OWN README.md, LICENSE, and
+#    SECURITY.md (committed), and REWRITES CHANGELOG.md / CONTRIBUTING.md / docs/
+#    for itself — so those product paths are intentionally NOT ignored (the
+#    consumer replaces their bodies; it does not hide them). ──────────────────
+ARCHITECTURE.md
+GENERICIZATION.md
+QUICKSTART.md
+CREDITS.md
+NOTICE
+
+# Framework tooling (the product's CLI entry is dist/cli.js, not bin/)
+bin/
+ci/
+
+# Framework GitHub workflows only. Do NOT blanket-ignore .github/ — product CI
+# (ci.yml, weekly-smoke.yml, dependabot.yml) lives under .github/.
+.github/workflows/librarian-daily.yml
+.github/workflows/publish-gate.yml
+
+# ── Node / TypeScript build output ─────────────────────────────────────────
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+__pycache__/
+*.pyc
+
+# ── OS / editor cruft ──────────────────────────────────────────────────────
+.DS_Store
+*.swp
+*~

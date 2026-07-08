@@ -1,0 +1,145 @@
+# ci — product CI for stripe-audit (npx stripe-audit).
+#
+# Runs on every push and pull request. Four jobs mirror the local quality gates:
+#   lint-typecheck — eslint + tsc --noEmit
+#   test           — full vitest suite (unit + golden harness)
+#   stripe-mock    — the fetcher integration against a live stripe-mock
+#                    service container (the suite skips this block without one)
+#   coverage       — vitest --coverage; FAILS when src/ line OR function
+#                    coverage drops below 80% (gate lives in vitest.config.ts)
+#   docs-drift     — reconciles committed docs against their code source-of-truth
+#                    (assets/demo.svg vs --demo; API-version literals vs the CLI's
+#                    own --version), so the README hero and the ~40 pinned version
+#                    strings can never silently staleen
+#   audit          — npm audit --omit=dev --audit-level=high; FAILS on any
+#                    high/critical advisory in production dependencies
+#
+# Node: the test job runs a [22, 24] matrix — 22 is the advertised engines
+# floor, 24 the dev/LTS version — so CI exercises the floor users can install
+# on. The other jobs run 24 only. actions SHA-pinned, npm cache.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-typecheck:
+    name: lint + typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run check:bytes
+
+  test:
+    name: unit + golden tests (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  stripe-mock:
+    name: stripe-mock fetcher
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # require mode: an unreachable mock FAILS the integration block instead of
+    # skipping it — so this job can never silently degrade into a green no-op
+    # (belt to the readiness-wait's suspenders below).
+    env:
+      STRIPE_MOCK: require
+    services:
+      stripe-mock:
+        # Pinned by tag + digest (mirror of docker-compose.yml) so CI and local
+        # dev run the IDENTICAL mock; bumped via Dependabot's docker ecosystem.
+        image: stripe/stripe-mock:v0.201.0@sha256:6a3fbbb37639a15525f8df5ae6995a9da21d5e827b897898a47a88e2b6e3790b
+        ports:
+          - 12111:12111
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Block until the service container accepts TCP, so the fetcher test's
+      # reachability probe never fires early. With STRIPE_MOCK=require (above) an
+      # unreachable mock would fail rather than skip, but waiting here gives a
+      # clearer, earlier failure than a mid-test connection refusal.
+      - name: Wait for stripe-mock
+        run: |
+          for i in $(seq 1 30); do
+            if (echo > /dev/tcp/127.0.0.1/12111) 2>/dev/null; then
+              echo "stripe-mock is accepting connections"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "stripe-mock did not become ready on :12111" >&2
+          exit 1
+      - run: npx vitest run test/fetcher.test.ts
+
+  coverage:
+    name: coverage gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:coverage
+
+  docs-drift:
+    name: docs-drift guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Needs dist/: the guard regenerates demo.svg via the CLI and reads the
+      # canonical Stripe API version from `stripe-audit -v`.
+      - run: npm run build
+      - run: npm run check:docs
+
+  audit:
+    name: npm audit (high)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Fail the build on any high/critical advisory in PRODUCTION dependencies
+      # (--omit=dev scopes to what actually ships). Born-green at introduction;
+      # the Dependabot npm ecosystem keeps it green.
+      - run: npm audit --omit=dev --audit-level=high

@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderConsole — basic severity-grouped (default reporter) > matches the committed snapshot (ANSI-stripped for stability) 1`] = `
+"stripe-audit
+Stripe API 2026-06-24.dahlia · account live · 2026-06-24T00:00:00.000Z
+
+Score  [░░░░░░░░░░░░░░░░░░░░░░░░] 0/100 — Grade F
+Coverage: full — every region scanned within limits.
+
+Findings by severity
+  Critical  ██ 1
+  High      █████████████ 8
+  Medium    ████████████████████████ 15
+  Low       ██████████ 6
+  Info      ███ 2
+
+Findings by category
+  webhooks       ███████████████████ 7
+  billing        ████████████████ 6
+  security       ███████████ 4
+  configuration  ████████████████ 6
+  payments        0
+  pricing        ████████████████████████ 9
+
+Critical (1)
+  • Webhook endpoint subscribes to all events (*)
+    Subscribe each endpoint to the explicit list of events it handles. Reserve \`*\` for debugging, never production billing.
+
+High (8)
+  • Webhook endpoint is disabled
+    Re-enable the endpoint once the receiver is healthy, or delete it if it is obsolete so it no longer reads as a coverage gap.
+  • Insecure (non-HTTPS) webhook URL
+    Serve the receiver over HTTPS and update the endpoint URL to an \`https://\` origin.
+  • Test/local webhook endpoint on a live account
+    Point live endpoints at a production HTTPS origin. Use test-mode keys and local tunnels for development, never the live account.
+  • Customer portal does not allow payment method updates
+    Enable "Customer can update their payment methods" on the default portal configuration.
+  • Active product has no active price
+    Activate a price for the product, or archive the product if it is no longer sold.
+  • Live-mode key is seeing test data
+    Use a key whose prefix matches the environment you intend to audit.
+  • Account is not able to create charges
+    Complete account onboarding / verification in the Stripe Dashboard so charges are enabled.
+  • Account has outstanding requirements
+    Submit the outstanding requirements in the Stripe Dashboard before they disable the account.
+
+Medium (15)
+  • Unusually many enabled webhook endpoints (12)
+    Audit the endpoint list and remove any that are no longer needed. Set \`options.threshold\` to tune this advisory for your integration.
+  • Duplicate webhook endpoint URL
+    Consolidate to a single endpoint per URL and delete the duplicates, or give each a distinct URL if duplication is intentional.
+  • Webhook endpoint pinned to an outdated API version
+    Upgrade the endpoint to the latest API version after confirming your handler tolerates the newer event shapes, or intentionally re-pin it.
+  • Customer portal does not offer self-serve cancellation
+    Enable "Customer can cancel subscriptions" on the default portal configuration.
+  • Customer portal does not show invoice history
+    Enable "Customer can view their invoice history" on the default portal configuration.
+  • Customer portal does not allow customer detail updates
+    Enable "Customer can update their information" on the default portal configuration.
+  • Portal plan changes apply no proration
+    Set the portal's subscription-update proration behavior to 'create_prorations' (or 'always_invoice') so upgrades are billed correctly.
+  • Active price is set to zero
+    Confirm the zero amount is intentional; otherwise set a non-zero unit amount.
+  • Product default price missing or inactive
+    Set the product default price to an active price.
+  • Product default price missing or inactive
+    Set the product default price to an active price.
+  • Active price has unspecified tax behavior
+    Set the price's tax_behavior to 'inclusive' or 'exclusive'.
+  • Customer-chosen price has no minimum
+    Set a minimum on the custom unit amount so pay-what-you-want has a floor.
+  • No default tax behavior configured
+    Set a default tax behavior ('inclusive' or 'exclusive') in your Stripe Tax settings.
+  • Stripe Tax onboarding is incomplete
+    Finish Stripe Tax onboarding (origin address + default product tax code) to move status to active.
+  • No statement descriptor configured
+    Set a clear statement descriptor in the Stripe Dashboard (Settings → Public details / Payments).
+
+Low (6)
+  • Customer portal hosted login page is disabled
+    Enable the hosted login page on the default portal configuration if you want a standalone portal URL.
+  • Active recurring price has no lookup key
+    Assign a stable lookup_key to the price so your integration references it by key, not id.
+  • Multiple active prices for the same product and cadence
+    Archive the redundant prices, keeping one canonical active price per currency/cadence/amount (grandfathered prices aside).
+  • Product mixes multi-currency mechanisms
+    Pick one multi-currency mechanism per product — either separate Price objects per currency, or a single price with currency_options.
+  • Account branding (icon/logo) not configured
+    Upload a branding icon and/or logo in the Stripe Dashboard (Settings → Branding).
+  • No default account tax IDs configured for invoices
+    Set default account tax IDs in your invoice settings so they appear on every invoice.
+
+Info (2)
+  • v2 event destinations were not audited
+    Review v2 event destinations separately in the Stripe Dashboard if your integration uses them.
+  • Restricted key did not grant every read scope
+    Grant the key read access to tax for a complete audit, or accept the reduced coverage.
+
+Skipped rules: BILLING_MODE_NOT_MIGRATED (requires-deep), METER_ERROR_NOT_MONITORED (requires-deep), HIGH_PERCENT_COUPON (requires-deep), HIGH_AMOUNT_COUPON (requires-deep), FOREVER_COUPON_STILL_VALID (requires-deep)
+Suppressed (0)"
+`;

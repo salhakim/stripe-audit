@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/salhakim/stripe-audit/main/schemas/stripe-audit.config.schema.json",
+  "title": "stripe-audit configuration",
+  "description": "The zero-code JSON configuration for stripe-audit (stripe-audit.config.json). Settings and ignore patterns only — the JSON form cannot register a plugin module; plugins require the executable config form (stripe-audit.config.mjs/.cjs/.js). Add a \"$schema\" reference pointing at this file to get editor autocomplete and validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this JSON Schema, enabling editor autocomplete and validation of the config file."
+    },
+    "failOn": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "none"],
+      "description": "Exit non-zero when an active finding is at or above this severity. 'none' never trips the gate. Mirrors the --fail-on flag; default 'high'."
+    },
+    "deep": {
+      "type": "boolean",
+      "description": "Enable deep audit mode — also reads subscriptions, meters, event destinations, and coupons (requires additional restricted-key scopes). Mirrors the --deep flag; default false."
+    },
+    "ignore": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Suppression patterns applied to findings, each matching by rule id, ':resource', or 'rule:resource'. Merged with any .stripeauditignore file. Mirrors the --ignore flag."
+    },
+    "baseline": {
+      "type": "string",
+      "description": "Path to a baseline file to compare findings against — the audit fails only when a NEW finding appears (anti-regression gate). Mirrors the --baseline flag."
+    },
+    "output": {
+      "type": "string",
+      "enum": ["json", "markdown", "html", "console", "badge"],
+      "description": "Report format. Mirrors the --output flag; default 'console'."
+    },
+    "severity": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["critical", "high", "medium", "low", "info"]
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "description": "Only run rules of these severities (at least one — an empty list would select no rules). Mirrors the --severity flag."
+    },
+    "category": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["webhooks", "billing", "security", "configuration", "payments", "pricing"]
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "description": "Only run rules in these categories (at least one — an empty list would select no rules). Mirrors the --category flag."
+    }
+  }
+}

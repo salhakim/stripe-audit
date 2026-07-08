@@ -1,0 +1,70 @@
+# Release pipeline — npm publish with provenance (manual-dispatch only).
+#
+# Fires on MANUAL DISPATCH ONLY. The `v*` tag trigger is deliberately removed:
+# the release runbook tags v0.2.0 in this private repo while the canonical
+# publish for 0.2.0 is a manual `npm publish` from the verified export, so a
+# tag push here must never fire a racing CI publish. Re-arming the tag trigger
+# is a post-launch decision once the public repo hosts CI.
+# BEFORE publishing, it runs a FAIL-CLOSED smoke of the built CLI
+# against a deliberately-misconfigured reference Stripe account using a RESTRICTED
+# read-only key (S4 least-privilege) supplied ONLY as a named secret and never
+# echoed (S1). If the audit goes green on the known-bad account, detection has
+# regressed and the publish is blocked. Publishing is gated on npm provenance
+# (OIDC id-token), with the npm token sourced by secret name.
+#
+# The reference-account identity is a team-internal note kept OUTSIDE this
+# exported tree — only the secret NAME appears here.
+name: release
+
+on:
+  workflow_dispatch:
+
+# Least privilege by default; the job below adds only the id-token it needs.
+permissions:
+  contents: read
+
+jobs:
+  smoke-and-publish:
+    name: pre-publish smoke + provenance publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # OIDC token minted for npm provenance attestation
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      # Fail-closed pre-publish smoke. The restricted read-only key is referenced
+      # ONLY by secret name and never echoed. The reference account carries known
+      # high+ findings, so `--fail-on high` MUST exit non-zero; a zero exit means
+      # detection regressed → block the release. --output json keeps the key out
+      # of any rendered summary (the JSON reporter never emits key material).
+      - name: pre-publish smoke (fail-closed on a broken reference account)
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_AUDIT_RELEASE_KEY }}
+        run: |
+          set -euo pipefail
+          set +e
+          node dist/cli.js --output json --fail-on high > "$RUNNER_TEMP/smoke.json"
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "::error::pre-publish smoke went GREEN on the broken reference account — detection regressed; blocking release."
+            exit 1
+          fi
+          echo "pre-publish smoke correctly flagged the reference account (exit $code); proceeding to publish."
+
+      # Provenance publish. The npm token is sourced by secret name; setup-node's
+      # registry-url wires NODE_AUTH_TOKEN into the publish. --provenance requires
+      # the id-token:write permission above.
+      - name: publish to npm with provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public

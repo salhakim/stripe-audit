@@ -1,0 +1,80 @@
+{
+  "apiVersion": "2026-06-24.dahlia",
+  "auditScope": "base",
+  "accountMode": "test",
+  "livemode": true,
+  "account": {
+    "id": "acct_clean",
+    "defaultAccountTaxIds": [
+      "txi_1"
+    ],
+    "statementDescriptor": "ACME INC",
+    "branding": {
+      "icon": "file_icon",
+      "logo": "file_logo"
+    },
+    "defaultAccountTaxIdsSet": true,
+    "chargesEnabled": true,
+    "requirements": null
+  },
+  "webhookEndpoints": [
+    {
+      "id": "we_missing_critical",
+      "url": "https://prod.example.com/hook",
+      "status": "enabled",
+      "enabledEvents": [
+        "charge.succeeded"
+      ],
+      "apiVersion": null,
+      "description": null
+    }
+  ],
+  "prices": [],
+  "portalConfigurations": [],
+  "taxSettings": null,
+  "subscriptionSummary": null,
+  "meters": null,
+  "thinEventDestinations": null,
+  "radarSettings": null,
+  "coupons": null,
+  "scopeProbe": [
+    {
+      "scope": "account",
+      "granted": true
+    },
+    {
+      "scope": "webhook_endpoints",
+      "granted": true
+    },
+    {
+      "scope": "prices",
+      "granted": true
+    },
+    {
+      "scope": "billing_portal",
+      "granted": true
+    },
+    {
+      "scope": "tax",
+      "granted": true
+    }
+  ],
+  "truncated": [],
+  "_meta": {
+    "description": "Edge fixture exercising mutually-exclusive rules — a test key used against livemode, an account with no portal config, tax unset, and a webhook with a wildcard event selection — so the absence-side rules fire (NO_CUSTOMER_PORTAL, TAX_NOT_ENABLED) without their presence-side siblings.",
+    "capturedAt": "2026-06-24T00:00:00Z",
+    "capturedApiVersion": "2026-06-24.dahlia",
+    "expectedRules": [
+      "EVENT_DESTINATIONS_NOT_AUDITED",
+      "NO_CUSTOMER_PORTAL",
+      "TAX_NOT_ENABLED",
+      "TEST_KEY_DETECTED_LIVE",
+      "WEBHOOK_SELECTION_REQUIRED_MISSED"
+    ],
+    "expectedSeverities": [
+      "critical",
+      "high",
+      "info"
+    ]
+  }
+}

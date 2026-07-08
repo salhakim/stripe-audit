@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a new lint rule, output format, or other enhancement.
+title: "[feat]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Proposing a new **lint rule**? Skim [docs/rules.md](../../docs/rules.md) and
+        [COVERAGE.md](../../COVERAGE.md) first so we can place it in the catalogue.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: The billing misconfiguration or workflow gap you want stripe-audit to catch or improve.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: The rule, flag, or behavior you have in mind. Include the Stripe object(s) involved.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you weighed, or existing workarounds.
+    validations:
+      required: false
+  - type: checkboxes
+    id: read-only
+    attributes:
+      label: Read-only guarantee
+      options:
+        - label: This request keeps stripe-audit read-only (it does not ask the tool to write to Stripe).
+          required: true

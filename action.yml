@@ -1,0 +1,150 @@
+# Stripe Billing Audit — composite GitHub Action (v0.2 packaging).
+#
+# Distribution wrapper around the published `npx stripe-audit` CLI. It shells the
+# already-built audit (the JSON reporter, the `--fail-on` exit-code owner,
+# `--baseline`, `.stripeauditignore`) — no CLI contract changes.
+#
+# Security-sensitive: the restricted Stripe key is passed to the CLI via the
+# STRIPE_SECRET_KEY *environment* variable only, never on the argv/process table.
+# Every consumer input is mediated through an `env:` block and referenced as a
+# shell variable in the run body — no `${{ }}` interpolation inside the script —
+# so an input value can never break out of the command (script-injection safe).
+name: 'Stripe Billing Audit'
+description: 'Read-only lint for your Stripe billing configuration — reports revenue-losing misconfigurations as severity-ranked findings.'
+author: 'stripe-audit'
+
+# Marketplace badge (required for a Marketplace listing).
+branding:
+  icon: 'dollar-sign'
+  color: 'purple'
+
+inputs:
+  api-key:
+    description: 'Restricted, read-only Stripe API key. Pass from an encrypted Actions secret (e.g. ${{ secrets.STRIPE_AUDIT_KEY }}); it is routed to the CLI via the STRIPE_SECRET_KEY env and never appears on the command line.'
+    required: true
+  output:
+    description: 'Report format for the human-facing render (job summary / PR comment): console | json | markdown. The gate/outputs step always parses JSON internally.'
+    required: false
+    default: 'markdown'
+  fail-on:
+    description: 'Exit non-zero when an active finding is at/above this severity: critical | high | medium | low | none.'
+    required: false
+    default: 'high'
+  baseline:
+    description: 'Path to a committed baseline file. When set, the audit gates on NEW findings vs the baseline and this REPLACES the --fail-on severity gate (see README § precedence). Leave empty to gate on absolute severity via fail-on.'
+    required: false
+    default: ''
+  deep:
+    description: 'Enable deep audit mode (set to "true"). Accepted as a no-op on CLI versions before it lands.'
+    required: false
+    default: 'false'
+  working-directory:
+    description: 'Directory to run the audit from (resolves .stripeauditignore / config / baseline relative paths).'
+    required: false
+    default: '.'
+  version:
+    description: 'Published stripe-audit version/tag to run via npx (e.g. "latest" or a pinned major like "0"). Pin for reproducible CI.'
+    required: false
+    default: 'latest'
+
+# Declared here; the audit step writes score=/grade= to $GITHUB_OUTPUT.
+outputs:
+  score:
+    description: 'Numeric audit score (0–100) parsed from the JSON summary.'
+    value: ${{ steps.audit.outputs.score }}
+  grade:
+    description: 'Letter grade (A–F) parsed from the JSON summary.'
+    value: ${{ steps.audit.outputs.grade }}
+
+runs:
+  using: 'composite'
+  steps:
+    # ── Machine path: JSON audit + gate. Captures the gate exit WITHOUT aborting
+    # the composite (set +e) so the render/comment steps below always run; the gate
+    # is re-applied last (see "Apply audit gate"). Inputs are env-mediated — never
+    # ${{ }} in the run body — so the key stays off the argv (S1) and no input can
+    # inject shell (S2). The human-facing render is a separate --output markdown run.
+    - id: audit
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        STRIPE_SECRET_KEY: ${{ inputs.api-key }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_BASELINE: ${{ inputs.baseline }}
+        INPUT_DEEP: ${{ inputs.deep }}
+        INPUT_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        # Build the argv conditionally so an empty --baseline is omitted (an empty
+        # path would otherwise be a config error).
+        args=(--output json --fail-on "$INPUT_FAIL_ON")
+        if [ -n "$INPUT_BASELINE" ]; then
+          args+=(--baseline "$INPUT_BASELINE")
+        fi
+        if [ "$INPUT_DEEP" = "true" ]; then
+          args+=(--deep)
+        fi
+        set +e
+        npx stripe-audit@"$INPUT_VERSION" "${args[@]}" > "$RUNNER_TEMP/stripe-audit.json"
+        code=$?
+        set -e
+        echo "audit_exit=$code" >> "$GITHUB_OUTPUT"
+        # Expose machine-readable score/grade (from the JSON summary) as
+        # step outputs so downstream steps can gate on score / badge on grade.
+        node -e '
+          const fs = require("fs");
+          let summary = {};
+          try {
+            summary = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/stripe-audit.json", "utf8")).summary || {};
+          } catch (e) { /* audit failed / empty JSON → emit empty outputs */ }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `score=${summary.score ?? ""}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `grade=${summary.grade ?? ""}\n`);
+        '
+
+    # ── Human path: ONE Markdown render, shown twice (job summary + PR comment).
+    # Display-only — no --fail-on — so a finding can never abort the render.
+    - id: render
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        STRIPE_SECRET_KEY: ${{ inputs.api-key }}
+        INPUT_BASELINE: ${{ inputs.baseline }}
+        INPUT_DEEP: ${{ inputs.deep }}
+        INPUT_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        args=(--output markdown)
+        if [ -n "$INPUT_BASELINE" ]; then
+          args+=(--baseline "$INPUT_BASELINE")
+        fi
+        if [ "$INPUT_DEEP" = "true" ]; then
+          args+=(--deep)
+        fi
+        set +e
+        npx stripe-audit@"$INPUT_VERSION" "${args[@]}" > "$RUNNER_TEMP/stripe-audit.md"
+        set -e
+        cat "$RUNNER_TEMP/stripe-audit.md" >> "$GITHUB_STEP_SUMMARY"
+
+    # ── Sticky PR comment (pull_request events only): find-or-update on the hidden
+    # marker so re-runs update one comment instead of spamming duplicates. The
+    # render-vs-create logic lives in a committed, unit-tested script. Pinned ref (S3).
+    - name: Sticky PR comment
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+      env:
+        STRIPE_AUDIT_REPORT_FILE: ${{ runner.temp }}/stripe-audit.md
+      with:
+        script: |
+          const fs = require('fs')
+          const sticky = require(`${process.env.GITHUB_ACTION_PATH}/scripts/stripe-audit-sticky-comment.cjs`)
+          const body = fs.readFileSync(process.env.STRIPE_AUDIT_REPORT_FILE, 'utf8')
+          await sticky({ github, context, core, body })
+
+    # ── Re-apply the gate LAST so a failing audit never skips the render/comment.
+    - name: Apply audit gate
+      shell: bash
+      env:
+        AUDIT_EXIT: ${{ steps.audit.outputs.audit_exit }}
+      run: |
+        set -euo pipefail
+        exit "${AUDIT_EXIT:-0}"

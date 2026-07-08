@@ -1,0 +1,101 @@
+{
+  "apiVersion": "2026-06-24.dahlia",
+  "auditScope": "base",
+  "accountMode": "test",
+  "livemode": false,
+  "account": {
+    "id": "acct_baseline",
+    "defaultAccountTaxIds": [
+      "txi_1"
+    ],
+    "statementDescriptor": null,
+    "branding": {
+      "icon": "file_icon",
+      "logo": "file_logo"
+    },
+    "defaultAccountTaxIdsSet": true,
+    "chargesEnabled": true,
+    "requirements": null
+  },
+  "webhookEndpoints": [],
+  "prices": [
+    {
+      "id": "price_baseline",
+      "active": true,
+      "taxBehavior": "exclusive",
+      "currency": "usd",
+      "unitAmount": 1500,
+      "type": "recurring",
+      "recurring": {
+        "interval": "month",
+        "intervalCount": 1
+      },
+      "nickname": "Pro monthly",
+      "lookupKey": "pro_monthly",
+      "customUnitAmount": null,
+      "currencyOptions": [],
+      "product": {
+        "id": "prod_baseline",
+        "name": "Pro",
+        "active": true,
+        "defaultPrice": "price_baseline"
+      }
+    }
+  ],
+  "portalConfigurations": [
+    {
+      "id": "bpc_baseline",
+      "isDefault": true,
+      "customerUpdate": true,
+      "invoiceHistory": true,
+      "paymentMethodUpdate": true,
+      "subscriptionCancel": true,
+      "subscriptionUpdate": true,
+      "loginPage": true,
+      "subscriptionUpdateProration": "create_prorations"
+    }
+  ],
+  "taxSettings": {
+    "status": "active",
+    "defaultTaxBehavior": "exclusive"
+  },
+  "subscriptionSummary": null,
+  "meters": null,
+  "thinEventDestinations": null,
+  "radarSettings": null,
+  "coupons": null,
+  "scopeProbe": [
+    {
+      "scope": "account",
+      "granted": true
+    },
+    {
+      "scope": "webhook_endpoints",
+      "granted": true
+    },
+    {
+      "scope": "prices",
+      "granted": true
+    },
+    {
+      "scope": "billing_portal",
+      "granted": true
+    },
+    {
+      "scope": "tax",
+      "granted": true
+    }
+  ],
+  "truncated": [],
+  "_meta": {
+    "description": "Baseline 'after' snapshot — identical to before@ except statementDescriptor is cleared, introducing exactly one new finding (STATEMENT_DESCRIPTOR_MISSING) for the regression-delta seam.",
+    "capturedAt": "2026-06-24T00:00:00Z",
+    "capturedApiVersion": "2026-06-24.dahlia",
+    "expectedRules": [
+      "STATEMENT_DESCRIPTOR_MISSING"
+    ],
+    "expectedSeverities": [
+      "medium"
+    ]
+  }
+}

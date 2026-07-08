@@ -1,0 +1,11 @@
+# stripe-audit suppression fixture for the golden-harness suppression case.
+# gitignore-style: blank lines and lines beginning with `#` are skipped.
+#
+# Forms (all parsed by src/suppress.ts):
+#   RULE_ID            — suppress every finding of that rule
+#   :resource_id       — suppress every finding on that resource
+#   RULE_ID:resource   — suppress only that rule on that resource
+#
+# The golden harness asserts the wildcard-webhook finding (WEBHOOK_SELECT_ALL on
+# we_star in all-issues@) lands in `suppressed`, not `active`.
+WEBHOOK_SELECT_ALL

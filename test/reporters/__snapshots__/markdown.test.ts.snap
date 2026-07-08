@@ -1,0 +1,311 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderMarkdown — GitHub-flavored report > matches the committed snapshot 1`] = `
+"# Stripe Audit Report
+
+**Score: 0 / 100 — Grade F**
+
+Stripe API \`2026-06-24.dahlia\` · account \`live\` · 2026-06-24T00:00:00.000Z
+
+## Summary
+
+| Severity | Count |
+| --- | --- |
+| 🔴 Critical | 1 |
+| 🟠 High | 8 |
+| 🟡 Medium | 15 |
+| 🔵 Low | 6 |
+| ⚪ Info | 2 |
+| **Total** | **32** |
+
+_Rules run: 35 · passed: 4 · suppressed: 0_
+
+_Full audit — every region scanned within limits._
+
+## Findings
+
+### 🔴 Critical (1)
+
+#### Webhook endpoint subscribes to all events (*)
+
+Enabled endpoint https://star.example.com/hook subscribes to all event types (\`*\`). A blanket subscription hides which revenue-critical events are actually consumed, so a silently dropped \`invoice.payment_failed\` looks identical to an event you never wanted.
+
+_Impact: Masked delivery failures of billing events can silently leak recurring revenue._
+
+**Fix:** Subscribe each endpoint to the explicit list of events it handles. Reserve \`*\` for debugging, never production billing.
+
+[Stripe docs](https://docs.stripe.com/webhooks) · rule \`WEBHOOK_SELECT_ALL\`
+
+### 🟠 High (8)
+
+#### Webhook endpoint is disabled
+
+Endpoint https://a.example.com/h is disabled, so every event it subscribes to is currently dropped. Stripe disables endpoints automatically after repeated delivery failures.
+
+**Fix:** Re-enable the endpoint once the receiver is healthy, or delete it if it is obsolete so it no longer reads as a coverage gap.
+
+[Stripe docs](https://docs.stripe.com/webhooks/best-practices) · rule \`WEBHOOK_ENDPOINT_DISABLED\`
+
+#### Insecure (non-HTTPS) webhook URL
+
+Endpoint http://insecure.example.com/hook uses a non-HTTPS scheme on a live account. Event payloads (including signing material) travel unencrypted and can be intercepted or tampered with.
+
+**Fix:** Serve the receiver over HTTPS and update the endpoint URL to an \`https://\` origin.
+
+[Stripe docs](https://docs.stripe.com/webhooks/best-practices) · rule \`WEBHOOK_INSECURE_URL\`
+
+#### Test/local webhook endpoint on a live account
+
+Endpoint https://localhost:4000/hook targets a local or tunnel host (e.g. localhost / ngrok / *.test) on a live account. Live events are being routed to a development target — they will be lost in production.
+
+**Fix:** Point live endpoints at a production HTTPS origin. Use test-mode keys and local tunnels for development, never the live account.
+
+[Stripe docs](https://docs.stripe.com/webhooks/best-practices) · rule \`WEBHOOK_TEST_ENDPOINT_IN_LIVE\`
+
+#### Customer portal does not allow payment method updates
+
+The default portal disables payment-method updates, so customers with an expiring or failing card cannot fix it themselves — a leading cause of involuntary churn.
+
+**Fix:** Enable "Customer can update their payment methods" on the default portal configuration.
+
+[Stripe docs](https://docs.stripe.com/customer-management) · rule \`PORTAL_PAYMENT_UPDATE_DISABLED\`
+
+#### Active product has no active price
+
+Product prodC (prodC) is active but every one of its prices is inactive. The product cannot be purchased — any checkout or payment link for it fails.
+
+_Impact: An active, unsellable product silently blocks every purchase attempt for it._
+
+**Fix:** Activate a price for the product, or archive the product if it is no longer sold.
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`ALL_PRICES_INACTIVE\`
+
+#### Live-mode key is seeing test data
+
+The audit key has a live prefix but the account responses report livemode=false. The key/environment is mismatched — results will not reflect your production configuration.
+
+**Fix:** Use a key whose prefix matches the environment you intend to audit.
+
+[Stripe docs](https://docs.stripe.com/keys) · rule \`LIVE_KEY_DETECTED_TEST\`
+
+#### Account is not able to create charges
+
+The account reports it cannot currently create charges. Every payment attempt will fail until this is resolved — usually an onboarding or verification gap.
+
+_Impact: While charges are disabled, 100% of payment attempts fail._
+
+**Fix:** Complete account onboarding / verification in the Stripe Dashboard so charges are enabled.
+
+[Stripe docs](https://docs.stripe.com/api/accounts) · rule \`ACCOUNT_CHARGES_DISABLED\`
+
+#### Account has outstanding requirements
+
+Stripe reports outstanding account requirements (currently due: business_profile.url). Unmet requirements can disable charges or payouts, interrupting revenue.
+
+**Fix:** Submit the outstanding requirements in the Stripe Dashboard before they disable the account.
+
+[Stripe docs](https://docs.stripe.com/api/accounts) · rule \`ACCOUNT_REQUIREMENTS_DUE\`
+
+### 🟡 Medium (15)
+
+#### Unusually many enabled webhook endpoints (12)
+
+12 enabled webhook endpoints exceed the advisory threshold of 10. A sprawl of endpoints is hard to keep version-consistent and is often a sign of stale test/integration endpoints left in place.
+
+**Fix:** Audit the endpoint list and remove any that are no longer needed. Set \`options.threshold\` to tune this advisory for your integration.
+
+[Stripe docs](https://docs.stripe.com/api/webhook_endpoints) · rule \`WEBHOOK_TOO_MANY_ENDPOINTS\`
+
+#### Duplicate webhook endpoint URL
+
+2 enabled endpoints deliver to the same URL https://dup.example.com/hook. Duplicate endpoints double-deliver every event and usually mean a forgotten copy is still live.
+
+**Fix:** Consolidate to a single endpoint per URL and delete the duplicates, or give each a distinct URL if duplication is intentional.
+
+[Stripe docs](https://docs.stripe.com/api/webhook_endpoints) · rule \`WEBHOOK_DUPLICATE_URL\`
+
+#### Webhook endpoint pinned to an outdated API version
+
+Endpoint https://old.example.com/hook is pinned to API version 2024-09-30.acacia, older than the latest Stripe release the audit knows (2026-06-24.dahlia). Pinned endpoints receive event shapes from an older release, which drift from newer integration code.
+
+**Fix:** Upgrade the endpoint to the latest API version after confirming your handler tolerates the newer event shapes, or intentionally re-pin it.
+
+[Stripe docs](https://docs.stripe.com/upgrades) · rule \`WEBHOOK_API_VERSION_MISMATCH\`
+
+#### Customer portal does not offer self-serve cancellation
+
+The default portal disables subscription cancellation. Forcing cancellations through support frustrates customers and risks chargebacks / disputes.
+
+**Fix:** Enable "Customer can cancel subscriptions" on the default portal configuration.
+
+[Stripe docs](https://docs.stripe.com/customer-management) · rule \`PORTAL_NO_CANCEL_FLOW\`
+
+#### Customer portal does not show invoice history
+
+The default portal hides invoice history, so customers cannot self-serve receipts and billing records — a recurring support burden.
+
+**Fix:** Enable "Customer can view their invoice history" on the default portal configuration.
+
+[Stripe docs](https://docs.stripe.com/customer-management) · rule \`PORTAL_NO_INVOICE_HISTORY\`
+
+#### Customer portal does not allow customer detail updates
+
+The default portal disables customer-detail updates (email, address, tax ID), so customers cannot keep their billing information current.
+
+**Fix:** Enable "Customer can update their information" on the default portal configuration.
+
+[Stripe docs](https://docs.stripe.com/customer-management) · rule \`PORTAL_NO_CUSTOMER_UPDATE\`
+
+#### Portal plan changes apply no proration
+
+The default portal allows subscription updates but sets proration to 'none'. Mid-cycle upgrades are not charged the prorated difference, leaking revenue on every in-portal plan change.
+
+**Fix:** Set the portal's subscription-update proration behavior to 'create_prorations' (or 'always_invoice') so upgrades are billed correctly.
+
+[Stripe docs](https://docs.stripe.com/customer-management) · rule \`PORTAL_PRORATION_NONE_ON_UPDATE\`
+
+#### Active price is set to zero
+
+Price priceB1 is active with a unit amount of 0 USD. If this is not an intentional free tier, the product is being given away.
+
+**Fix:** Confirm the zero amount is intentional; otherwise set a non-zero unit amount.
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`PRICE_ZERO_AMOUNT\`
+
+#### Product default price missing or inactive
+
+Product prodA (prodA) has no default price set. Stripe requires the default price to be an active price; payment links and Checkout that rely on it will misbehave.
+
+**Fix:** Set the product default price to an active price.
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`DEFAULT_PRICE_MISSING_OR_INACTIVE\`
+
+#### Product default price missing or inactive
+
+Product prodC (prodC) points at inactive price priceC1. Stripe requires the default price to be an active price; payment links and Checkout that rely on it will misbehave.
+
+**Fix:** Set the product default price to an active price.
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`DEFAULT_PRICE_MISSING_OR_INACTIVE\`
+
+#### Active price has unspecified tax behavior
+
+Price priceA1 is active with tax_behavior unspecified. Stripe cannot tell whether the amount is tax-inclusive or exclusive, risking incorrect tax on every charge.
+
+**Fix:** Set the price's tax_behavior to 'inclusive' or 'exclusive'.
+
+[Stripe docs](https://docs.stripe.com/tax) · rule \`PRICE_TAX_BEHAVIOR_UNSPECIFIED\`
+
+#### Customer-chosen price has no minimum
+
+Price priceD1 lets the customer choose the amount (custom_unit_amount) but sets no minimum. Customers can pay arbitrarily little — including effectively nothing.
+
+**Fix:** Set a minimum on the custom unit amount so pay-what-you-want has a floor.
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`CUSTOM_UNIT_AMOUNT_NO_MINIMUM\`
+
+#### No default tax behavior configured
+
+Stripe Tax is set up but has no default tax behavior (inclusive/exclusive). Prices without an explicit tax behavior fall back to ambiguous handling.
+
+**Fix:** Set a default tax behavior ('inclusive' or 'exclusive') in your Stripe Tax settings.
+
+[Stripe docs](https://docs.stripe.com/tax/set-up) · rule \`DEFAULT_TAX_BEHAVIOR_UNSET\`
+
+#### Stripe Tax onboarding is incomplete
+
+Stripe Tax status is pending — onboarding (origin address, default tax code) is unfinished, so automatic tax is not fully active.
+
+**Fix:** Finish Stripe Tax onboarding (origin address + default product tax code) to move status to active.
+
+[Stripe docs](https://docs.stripe.com/tax/set-up) · rule \`TAX_SETTINGS_PENDING\`
+
+#### No statement descriptor configured
+
+No statement descriptor is set, so charges may appear on customer card statements without a recognizable name — a leading cause of "I don’t recognize this charge" disputes and chargebacks.
+
+**Fix:** Set a clear statement descriptor in the Stripe Dashboard (Settings → Public details / Payments).
+
+[Stripe docs](https://docs.stripe.com/api/accounts) · rule \`STATEMENT_DESCRIPTOR_MISSING\`
+
+### 🔵 Low (6)
+
+#### Customer portal hosted login page is disabled
+
+The default portal has the hosted login page off, so there is no shareable self-serve URL — every portal visit must be deep-linked from your app.
+
+**Fix:** Enable the hosted login page on the default portal configuration if you want a standalone portal URL.
+
+[Stripe docs](https://docs.stripe.com/customer-management) · rule \`PORTAL_LOGIN_PAGE_DISABLED\`
+
+#### Active recurring price has no lookup key
+
+Price priceA1 is active and recurring but has no lookup_key. Referencing prices by raw id is brittle — a lookup_key lets you swap the underlying price without a code change.
+
+**Fix:** Assign a stable lookup_key to the price so your integration references it by key, not id.
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`PRICE_NO_LOOKUP_KEY\`
+
+#### Multiple active prices for the same product and cadence
+
+Product prodA has more than one active price for the same currency, billing cadence, and amount shape. Stripe's convention is exactly one canonical active price per cadence; duplicates make "the price" ambiguous.
+
+**Fix:** Archive the redundant prices, keeping one canonical active price per currency/cadence/amount (grandfathered prices aside).
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`MULTIPLE_ACTIVE_PRICES_PER_PRODUCT\`
+
+#### Product mixes multi-currency mechanisms
+
+Product prodE has active prices in multiple base currencies AND prices using currency_options. Mixing per-currency Price objects with on-price currency_options makes "which price applies" ambiguous and easy to misconfigure.
+
+**Fix:** Pick one multi-currency mechanism per product — either separate Price objects per currency, or a single price with currency_options.
+
+[Stripe docs](https://docs.stripe.com/products-prices/manage-prices) · rule \`CROSS_CURRENCY_PRICES\`
+
+#### Account branding (icon/logo) not configured
+
+The account has neither a branding icon nor a logo, so receipts, invoices, and the customer portal render unbranded — eroding trust and increasing dispute risk.
+
+**Fix:** Upload a branding icon and/or logo in the Stripe Dashboard (Settings → Branding).
+
+[Stripe docs](https://docs.stripe.com/api/accounts) · rule \`UNBRANDED_RECEIPTS\`
+
+#### No default account tax IDs configured for invoices
+
+No default account tax IDs are set, so your business tax registration number does not appear on invoices — a compliance gap in many jurisdictions.
+
+**Fix:** Set default account tax IDs in your invoice settings so they appear on every invoice.
+
+[Stripe docs](https://docs.stripe.com/api/accounts) · rule \`DEFAULT_ACCOUNT_TAX_IDS_MISSING\`
+
+### ⚪ Info (2)
+
+#### v2 event destinations were not audited
+
+This audit covers classic /v1/webhook_endpoints only. If you also use v2 event destinations ("thin events"), they are not included in this report.
+
+**Fix:** Review v2 event destinations separately in the Stripe Dashboard if your integration uses them.
+
+[Stripe docs](https://docs.stripe.com/event-destinations) · rule \`EVENT_DESTINATIONS_NOT_AUDITED\`
+
+#### Restricted key did not grant every read scope
+
+The audit key could not read: tax. Rules over those regions were skipped, so this audit is partial. (This is expected if you intentionally scoped the key narrower than the audit's 6 read regions.)
+
+**Fix:** Grant the key read access to tax for a complete audit, or accept the reduced coverage.
+
+[Stripe docs](https://docs.stripe.com/keys#create-restricted-api-secret-key) · rule \`RESTRICTED_KEY_PERMISSION_PROBE\`
+
+## Skipped rules
+
+- \`BILLING_MODE_NOT_MIGRATED\` — requires-deep
+- \`METER_ERROR_NOT_MONITORED\` — requires-deep
+- \`HIGH_PERCENT_COUPON\` — requires-deep
+- \`HIGH_AMOUNT_COUPON\` — requires-deep
+- \`FOREVER_COUPON_STILL_VALID\` — requires-deep
+
+## Suppressed (0)
+
+_No findings were suppressed._
+"
+`;
