@@ -105,6 +105,33 @@ that is present and in sync with its `package.json` — the shipped CI workflows
 all install with `npm ci`, so a broken or missing lockfile here means every
 public CI job would fail.
 
+### 3.5 Subsequent releases — overlay sync (never force-push)
+
+The fresh `git init` above is the **first-cut** procedure only. Once the
+public repository exists, it operates as a **release mirror**: development,
+dependency merges, and the history-of-record stay in this repository, and the
+mirror advances by exactly one overlay commit per sync:
+
+```bash
+bash scripts/sync-public.sh "stripe-audit vX.Y.Z"
+```
+
+The script re-exports the allowlist, replaces the mirror's tracked tree
+wholesale (so removed paths propagate as deletions), re-runs the fail-closed
+verifier on the assembled tree, commits once, and fast-forward pushes — fully
+compatible with the mirror's branch protection (force-pushes and deletion are
+blocked there by a repository ruleset).
+
+Mirror rules of the road:
+
+- **Never edit the mirror directly** (including via the GitHub UI). A direct
+  edit diverges from this tree and the next sync silently overwrites it —
+  make the change here, then sync.
+- **Never merge a Dependabot PR on the mirror.** Version updates are disabled
+  there; bumps are reviewed and merged here and arrive via the next sync.
+- The mirror may run ahead of the latest published npm tarball between
+  releases — that is normal; the tag marks what shipped.
+
 The allowlist is fail-safe: a path that is not listed can never ship, so a future
 private file added to this repository does not leak by default.
 
@@ -229,5 +256,6 @@ npx stripe-audit --version
 | Dry run | `npm publish --dry-run` | tarball shows product-only surface |
 | Export | `npm run export:public -- "$DEST"` | exactly 1 commit |
 | Verify | `npm run verify:export -- "$DEST"` | exit 0 |
+| Sync mirror | `bash scripts/sync-public.sh "stripe-audit vX.Y.Z"` | 1 overlay commit, ff push |
 | Publish | `cd "$DEST" && npm ci && npm run build && npm publish --access public` | registry accepts |
 | Tag | `git tag -a vX.Y.Z && git push --tags` | tag visible |
