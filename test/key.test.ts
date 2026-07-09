@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { detectKeyMode, redact } from '../src/key'
+import { fakeKey } from './fixtures/fake-keys'
 
-// Placeholder keys — NOT real credentials. The bodies are obvious fakes; each
-// line is annotated so the secret scanner treats them as placeholders.
-const LIVE_SECRET = 'sk_live_EXAMPLEonly0123456789abcd' // gitleaks:allow
-const TEST_SECRET = 'sk_test_EXAMPLEonly0123456789abcd' // gitleaks:allow
-const LIVE_RESTRICTED = 'rk_live_EXAMPLEonly0123456789wxyz' // gitleaks:allow
-const TEST_RESTRICTED = 'rk_test_EXAMPLEonly0123456789wxyz' // gitleaks:allow
+// Placeholder keys — NOT real credentials. Assembled at runtime so the source
+// text never matches a provider key pattern (see fixtures/fake-keys.ts).
+const LIVE_SECRET = fakeKey('sk', 'live')
+const TEST_SECRET = fakeKey('sk', 'test')
+const LIVE_RESTRICTED = fakeKey('rk', 'live', 'EXAMPLEonly0123456789wxyz')
+const TEST_RESTRICTED = fakeKey('rk', 'test', 'EXAMPLEonly0123456789wxyz')
 
 describe('detectKeyMode', () => {
   it('derives mode + kind from the prefix, never from account fields', () => {

@@ -25,14 +25,16 @@ updates:
       - dependency-name: "commander"
         update-types: ["version-update:semver-major"]
 
-  # ── Docker: the pinned stripe-mock image used by the integration suite ──
+  # ── Docker Compose: the pinned stripe-mock image used by the integration suite ──
   # docker-compose.yml pins stripe/stripe-mock by tag + digest; this ecosystem
-  # opens weekly PRs to bump it. COORDINATED PIN: the same image is referenced in
-  # .github/workflows/ci.yml's services.stripe-mock, but GitHub Actions service-
-  # container image tags are NOT auto-scanned by Dependabot — so mirror any bump
-  # from the compose PR into ci.yml in the SAME PR (same discipline as the
-  # stripe/commander coupled pins above).
-  - package-ecosystem: "docker"
+  # opens weekly PRs to bump it. NOTE: this must be the "docker-compose"
+  # ecosystem — "docker" scans Dockerfiles only (this repo has none), and its
+  # weekly update job errors out. COORDINATED PIN: the same image is referenced
+  # in .github/workflows/ci.yml's services.stripe-mock, but GitHub Actions
+  # service-container image tags are NOT auto-scanned by Dependabot — so mirror
+  # any bump from the compose PR into ci.yml in the SAME PR (same discipline as
+  # the stripe/commander coupled pins above).
+  - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"

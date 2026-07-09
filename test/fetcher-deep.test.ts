@@ -13,9 +13,11 @@ import { describe, it, expect, vi } from 'vitest'
 import Stripe from 'stripe'
 import { fetchAccountSnapshot, isPermissionDenied } from '../src/fetcher'
 import type { FetchOptions } from '../src/fetcher'
+import { fakeKey } from './fixtures/fake-keys'
 
 // Placeholder restricted test key — NOT a real credential. Drives accountMode='test'.
-const TEST_KEY = 'rk_test_EXAMPLEonly0123456789abcd' // gitleaks:allow
+// Runtime-assembled so the source never matches a provider key pattern.
+const TEST_KEY = fakeKey('rk', 'test')
 
 const SUBSCRIPTION_CLASSIC = {
   id: 'sub_classic',

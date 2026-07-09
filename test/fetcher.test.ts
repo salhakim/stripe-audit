@@ -5,6 +5,7 @@ import { fetchAccountSnapshot, applyBound } from '../src/fetcher'
 import type { FetchOptions } from '../src/fetcher'
 import { STRIPE_API_VERSION } from '../src/stripe-client'
 import { stripeAccountSnapshotSchema } from '../src/snapshot-schema'
+import { fakeKey } from './fixtures/fake-keys'
 
 /** The Stripe SDK's autoPagingToArray ceiling — a `limit` above this throws (stripe@22). */
 const SDK_AUTOPAGE_MAX = 10_000
@@ -13,7 +14,8 @@ const SDK_AUTOPAGE_MAX = 10_000
 const MAX_LIST_ITEMS = SDK_AUTOPAGE_MAX - 1
 
 // Placeholder restricted test key — NOT a real credential. Drives accountMode='test'.
-const TEST_KEY = 'rk_test_EXAMPLEonly0123456789abcd' // gitleaks:allow
+// Runtime-assembled so the source never matches a provider key pattern.
+const TEST_KEY = fakeKey('rk', 'test')
 
 /** Call the fetcher with the test key; merge any extra options. */
 function fetch(stripe: Stripe, options: FetchOptions = {}) {
@@ -229,10 +231,7 @@ describe('fetchAccountSnapshot — accountMode seam', () => {
   })
 
   it('derives accountMode=live from a live key prefix', async () => {
-    const snap = await fetchAccountSnapshot(
-      makeStripe(),
-      'rk_live_EXAMPLEonly0123456789abcd', // gitleaks:allow
-    )
+    const snap = await fetchAccountSnapshot(makeStripe(), fakeKey('rk', 'live'))
     expect(snap.accountMode).toBe('live')
   })
 })

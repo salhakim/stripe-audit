@@ -79,7 +79,7 @@
     "format:check": "prettier --check .",
     "export:public": "bash scripts/export-public.sh",
     "verify:export": "bash scripts/verify-export-clean.sh",
-    "prepare": "husky"
+    "prepare": "husky || exit 0"
   },
   "dependencies": {
     "chalk": "^4.1.2",

@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import Stripe from 'stripe'
 import { STRIPE_API_VERSION, createStripeClient, responseApiVersion } from '../src/stripe-client'
+import { fakeKey } from './fixtures/fake-keys'
 
-// Placeholder key — NOT a real credential.
-const TEST_KEY = 'sk_test_EXAMPLEonly0123456789abcd' // gitleaks:allow
+// Placeholder key — NOT a real credential. Runtime-assembled so the source
+// never matches a provider key pattern.
+const TEST_KEY = fakeKey('sk', 'test')
 
 describe('STRIPE_API_VERSION', () => {
   it('equals the installed SDK API_VERSION (a drifted SDK bump fails CI)', () => {
