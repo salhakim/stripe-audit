@@ -77,7 +77,7 @@ Run these **in order**. Do not skip the dry-run or the export-clean step.
 
 | Cadence | Task |
 |---|---|
-| Weekly (automated) | Triage **Dependabot** PRs — npm, docker-compose (stripe-mock pin), and GitHub Actions ecosystems. Merge safe minor/patch; coordinate `stripe` major re-pins by hand. **Dependency PRs are merged in the development tree only** — the public release mirror has version updates disabled, and any PR opened against the mirror is closed (its bump arrives via the next sync commit). |
+| Weekly (automated) | Triage **Dependabot** PRs — npm, docker-compose (stripe-mock pin), and GitHub Actions ecosystems. Merge safe minor/patch; coordinate `stripe` major re-pins by hand. **Dependency PRs are merged in the development tree only** — the mirror ships a Dependabot config with `open-pull-requests-limit: 0` (there is no settings toggle for version updates), and any PR opened against the mirror is closed (its bump arrives via the next sync commit). |
 | On every push/PR | CI runs all gates including the **npm audit** job (`--omit=dev --audit-level=high`). |
 | CI red | Fix forward or revert immediately — never let `main` sit red; releases gate on it. |
 | Advisory alert | A high/critical production advisory fails the audit job — bump or replace the dependency promptly. |

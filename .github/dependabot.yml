@@ -1,49 +1,31 @@
-# Dependabot v2 — weekly npm dependency PRs for stripe-audit.
+# Dependabot v2 — RELEASE-MIRROR configuration.
 #
-# Surfaces SDK and tooling updates as automated PRs so the Stripe SDK (and the
-# rest of the dependency tree) never silently drifts.
+# This file ships to the public repository (as .github/dependabot.yml) in
+# place of the development tree's own Dependabot config. The public repo is a
+# release mirror: dependency updates are reviewed and merged in the
+# development tree and arrive here via sync commits — so every ecosystem
+# below sets open-pull-requests-limit: 0. Dependabot stays registered (its
+# jobs run and report clean) but never opens pull requests on the mirror.
+#
+# Forks: if you want automatic dependency PRs on your fork, raise the limits
+# (or delete the open-pull-requests-limit lines) and enable Dependabot in
+# your fork's settings.
 version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-    # ── Coupled-pin guard (project decision: "stripe-audit dependency pins") ──
-    # Two dependencies are deliberately coupled and must NOT be bumped naively:
-    #
-    #   • stripe — a MAJOR bump changes the pinned API version. STRIPE_API_VERSION
-    #     in src/stripe-client.ts must equal the SDK's LatestApiVersion literal, so a
-    #     stripe major bump requires re-pinning STRIPE_API_VERSION *and* re-capturing
-    #     the @<apiVersion> test fixtures in the SAME PR. Minor/patch stripe PRs are
-    #     safe to merge; the major PR is left to surface (not ignored) so a reviewer
-    #     performs the coordinated re-pin rather than missing it.
-    #
-    #   • commander — held at <=14. v15+ is ESM-only and raises the Node floor; this
-    #     CLI is CommonJS + Node 20. Major bumps are ignored below so Dependabot never
-    #     opens a commander v15+ PR that would break the build.
-    ignore:
-      - dependency-name: "commander"
-        update-types: ["version-update:semver-major"]
+    open-pull-requests-limit: 0
 
-  # ── Docker Compose: the pinned stripe-mock image used by the integration suite ──
-  # docker-compose.yml pins stripe/stripe-mock by tag + digest; this ecosystem
-  # opens weekly PRs to bump it. NOTE: this must be the "docker-compose"
-  # ecosystem — "docker" scans Dockerfiles only (this repo has none), and its
-  # weekly update job errors out. COORDINATED PIN: the same image is referenced
-  # in .github/workflows/ci.yml's services.stripe-mock, but GitHub Actions
-  # service-container image tags are NOT auto-scanned by Dependabot — so mirror
-  # any bump from the compose PR into ci.yml in the SAME PR (same discipline as
-  # the stripe/commander coupled pins above).
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 0
 
-  # ── GitHub Actions: keep workflow action pins current ──
-  # Opens weekly PRs to bump the actions used in .github/workflows/ (e.g.
-  # actions/checkout, actions/setup-node) so pins never rot on a deprecated
-  # Node runtime the way checkout@v4/setup-node@v4 did.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 0
