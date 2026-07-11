@@ -5,6 +5,21 @@ All notable changes to **stripe-audit** are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] — 2026-07-10
+
+The first **stripe-audit** release published through CI with **npm provenance**.
+No functional changes to the audit — same 40 rules, still read-only; it **never
+writes to Stripe**.
+
+### Added
+
+- **Provenance attestations.** This version is published from GitHub Actions via
+  OIDC (`npm publish --provenance`), so its npm page carries a Sigstore-signed
+  provenance attestation that links the published tarball to its public source
+  commit and the workflow run that built it. Verify with `npm audit signatures`.
+- The release runbook ([`docs/release.md`](docs/release.md)) now documents the
+  CI-publish (provenance) path alongside the manual publish path.
+
 ## [0.2.0] — 2026-07-08
 
 Deep-audit mode graduates from a no-op to a live feature, growing the catalog to
