@@ -14,6 +14,8 @@
 [![Stripe API](https://img.shields.io/badge/tested%20against-2026--06--24.dahlia-635bff)](./COVERAGE.md)
 [![license: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/salhakim/stripe-audit/ci.yml?branch=main&label=CI)](https://github.com/salhakim/stripe-audit/actions)
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub_Marketplace-stripe--billing--audit-2088FF?logo=github)](https://github.com/marketplace/actions/stripe-billing-audit)
+[![npm downloads](https://img.shields.io/npm/dm/stripe-audit)](https://www.npmjs.com/package/stripe-audit)
 
 > **eslint for your Stripe billing config** — a read-only CLI that scans your Stripe account and reports revenue-losing misconfigurations as severity-ranked findings.
 
@@ -341,6 +343,8 @@ please don't open a public issue.
 ## License
 
 [MIT](./LICENSE) © Sal Hakim · Atlas Maps ([atlasmaps.app](https://atlasmaps.app))
+
+Developed by Sal Hakim.
 
 stripe-audit is an independent open-source project and is not affiliated with,
 endorsed by, or sponsored by Stripe, Inc.

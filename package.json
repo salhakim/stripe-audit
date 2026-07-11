@@ -1,6 +1,6 @@
 {
   "name": "stripe-audit",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A read-only Stripe billing audit & lint CLI — scans a Stripe account and reports revenue-losing misconfigurations as severity-ranked findings.",
   "keywords": [
     "stripe",
@@ -9,7 +9,13 @@
     "lint",
     "cli",
     "subscriptions",
-    "webhooks"
+    "webhooks",
+    "misconfiguration",
+    "revenue",
+    "fintech",
+    "developer-tools",
+    "stripe-billing",
+    "security-audit"
   ],
   "license": "MIT",
   "author": "Sal Hakim (Atlas Maps) <6118103+salhakim@users.noreply.github.com>",
@@ -78,6 +84,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "export:public": "bash scripts/export-public.sh",
+    "prepublishOnly": "npm run build && npm run typecheck && npm test",
     "verify:export": "bash scripts/verify-export-clean.sh",
     "prepare": "husky || exit 0"
   },

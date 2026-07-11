@@ -1,0 +1,63 @@
+# ── Root .npmignore — framework-footprint + secrets pack guard ──
+#
+# NORMALLY the package.json `files` allowlist governs the tarball and this
+# file is inert for top-level selection (a root .npmignore does NOT override
+# `files`; cached: learnings/stack-documentation/cli/npm-packaging.md:17).
+#
+# Its load-bearing role is the FALLBACK: if `files` is ever removed, npm
+# consults the root .npmignore INSTEAD OF .gitignore — so a missing or
+# minimal file here would ship .env / *.db / the framework footprint in
+# exactly the scenario this guard exists for (S1, threat table secops.md).
+# This is therefore a SUPERSET of .gitignore's sensitive entries, not a
+# minimal list. Guarded by test/npmignore.test.ts.
+
+# Secrets & credentials — never in a tarball under any configuration.
+.env
+.env.*
+*.pem
+*.key
+.secret-manifest.tsv
+
+# Local memory / SQLite stores.
+*.db
+*.db-wal
+*.db-shm
+
+# Framework footprint (IP isolation — local-only, never ships).
+.claude/
+CLAUDE.md
+framework.config.json
+learnings/
+stack-documentation/
+PRD.json
+secops.md
+knowledge-map.md
+LIBRARIAN.md
+.librarian-fingerprint
+progress.txt
+.husky/
+templates/
+ARCHITECTURE.md
+GENERICIZATION.md
+docs/approved-plans/
+docs/missions/
+docs/case-study/
+docs/SETTINGS-CHANGE-M6.md
+
+# Dev surface — build from dist/, don't ship sources or tooling config.
+src/
+test/
+ci/
+bin/
+assets/
+coverage/
+.github/
+.gitleaks.toml
+.nvmrc
+.prettierignore
+.prettierrc.json
+docker-compose.yml
+eslint.config.mjs
+tsconfig.json
+tsup.config.ts
+vitest.config.ts

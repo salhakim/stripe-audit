@@ -5,6 +5,31 @@ All notable changes to **stripe-audit** are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] — 2026-07-10
+
+Profile-polish patch release. No functional changes to the audit — same 40
+rules, still read-only; it **never writes to Stripe**.
+
+### Added
+
+- **`prepublishOnly` publish gate.** `npm publish` (including `--dry-run`) now
+  runs `build && typecheck && test` first, so a red suite blocks a release
+  before anything is packed. Day-to-day `npm pack` / `npm install` are
+  unaffected.
+- **Root `.npmignore` pack guard.** A fallback denylist (secrets, local
+  databases, internal tooling, dev sources) that takes over pack-ignore duty
+  if the `files` allowlist is ever removed — regression-locked by a new test.
+- README hero badges for the GitHub Marketplace Action and npm monthly
+  downloads.
+- Six more npm keywords (13 total) for registry discoverability.
+
+### Fixed
+
+- **GitHub now detects the license as MIT.** The LICENSE copyright notice is
+  a single line again (attribution moved to the README), which restores
+  licensee's exact-match MIT detection — the repo renders the MIT chip and
+  `license.spdx_id` reads `MIT` instead of `NOASSERTION`.
+
 ## [0.2.1] — 2026-07-10
 
 The first **stripe-audit** release published through CI with **npm provenance**.
@@ -119,6 +144,8 @@ Think "eslint for your Stripe billing config." It **never writes to Stripe**.
 
 | stripe-audit | Stripe API version | stripe SDK |
 |---|---|---|
+| 0.2.2 | `2026-06-24.dahlia` | `stripe@^22` |
+| 0.2.1 | `2026-06-24.dahlia` | `stripe@^22` |
 | 0.2.0 | `2026-06-24.dahlia` | `stripe@^22` |
 | 0.1.0 | `2026-06-24.dahlia` | `stripe@^22` |
 
@@ -128,5 +155,7 @@ from the package as `STRIPE_API_VERSION` and pinned on the Stripe client. When t
 audit logic is validated against a newer Stripe API version, that change is
 recorded here alongside the release that ships it.
 
+[0.2.2]: https://github.com/salhakim/stripe-audit/releases/tag/v0.2.2
+[0.2.1]: https://github.com/salhakim/stripe-audit/releases/tag/v0.2.1
 [0.2.0]: https://github.com/salhakim/stripe-audit/releases/tag/v0.2.0
 [0.1.0]: https://github.com/salhakim/stripe-audit/releases/tag/v0.1.0
