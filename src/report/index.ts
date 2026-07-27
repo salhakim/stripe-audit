@@ -67,6 +67,7 @@ export {
   BADGE_CLEAN_COLOR,
 } from './badge'
 export { stripAnsi, isColorTty, stripControl } from './tty'
+export { escapeHtml, escapeAttr, escapeXml, escapeMd } from './escape'
 export { buildAuditResult, describeFilter } from './result'
 export type {
   AuditResult,

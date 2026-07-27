@@ -13,6 +13,7 @@
  * output can never leak one.
  */
 import { describeFilter } from './result'
+import { escapeMd } from './escape'
 import type { AuditResult, BaselineDelta } from './result'
 import type { Finding, Severity } from '../types'
 
@@ -35,28 +36,6 @@ const SEVERITY_EMOJI: Record<Severity, string> = {
   medium: '🟡',
   low: '🔵',
   info: '⚪',
-}
-
-/**
- * Escape an UNTRUSTED value for safe interpolation into Markdown body text.
- *
- * Finding fields carry account-controlled strings (`ep.url`, `product.name`)
- * that flow into a PR comment / `$GITHUB_STEP_SUMMARY`. Left raw, an embedded
- * newline + `## …` can inject a forged heading, a `|` can break a table cell,
- * and inline HTML can reach a non-sanitizing Markdown renderer. This is surgical,
- * not full backslash-escaping: it collapses newlines (the main block-injection
- * vector — once a value can't introduce a line, an embedded `#`/`>`/`-` is inert
- * mid-line), neutralizes `<`/`>`/`|`, and deliberately LEAVES cosmetic markup
- * (`*` `_` backtick) so legitimate rule-authored text (e.g. `` `invoice.payment_failed` ``)
- * still renders clean. Account-derived fields are the threat surface; the rule
- * id is rule-authored + naming-guarded, so it never carries a backtick.
- */
-function escapeMd(value: string): string {
-  return value
-    .replace(/\r\n|\r|\n/g, ' ')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\|/g, '\\|')
 }
 
 /**

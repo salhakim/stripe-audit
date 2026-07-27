@@ -283,6 +283,64 @@ describe('fetchAccountSnapshot — list truncation signal', () => {
   })
 })
 
+describe('fetchAccountSnapshot — maxListItems knob (C18)', () => {
+  it('bounds a list fetch to the configured cap (5000) and flags overflow', async () => {
+    // A catalog one larger than the configured cap must truncate at the cap.
+    const overflowing = Array.from({ length: 5001 }, (_, i) => ({
+      id: `price_${i}`,
+      active: true,
+      currency: 'usd',
+      type: 'one_time',
+      product: 'prod_x',
+    }))
+    const snap = await fetch(makeStripe({ prices: overflowing }), { maxListItems: 5000 })
+    expect(snap.prices).toHaveLength(5000)
+    expect(snap.truncated).toContain('prices')
+  })
+
+  it('threads cap + 1 as the autoPagingToArray limit for every list region', async () => {
+    const limits: number[] = []
+    const recording = (items: unknown[]) => ({
+      autoPagingToArray: async (opts?: { limit?: number }) => {
+        limits.push(opts?.limit ?? Number.NaN)
+        return items
+      },
+    })
+    const stripe = {
+      accounts: { retrieveCurrent: async () => ACCOUNT },
+      webhookEndpoints: { list: () => recording([WEBHOOK]) },
+      prices: { list: () => recording([PRICE_ACTIVE]) },
+      billingPortal: { configurations: { list: () => recording([PORTAL]) } },
+      tax: { settings: { retrieve: async () => TAX } },
+    } as unknown as Stripe
+
+    await fetchAccountSnapshot(stripe, TEST_KEY, { maxListItems: 5000 })
+    expect(limits.length).toBe(3)
+    for (const limit of limits) expect(limit).toBe(5001)
+  })
+
+  it('an absent knob falls back to the default cap (byte-unchanged)', async () => {
+    const limits: number[] = []
+    const recording = (items: unknown[]) => ({
+      autoPagingToArray: async (opts?: { limit?: number }) => {
+        limits.push(opts?.limit ?? Number.NaN)
+        return items
+      },
+    })
+    const stripe = {
+      accounts: { retrieveCurrent: async () => ACCOUNT },
+      webhookEndpoints: { list: () => recording([WEBHOOK]) },
+      prices: { list: () => recording([PRICE_ACTIVE]) },
+      billingPortal: { configurations: { list: () => recording([PORTAL]) } },
+      tax: { settings: { retrieve: async () => TAX } },
+    } as unknown as Stripe
+
+    await fetchAccountSnapshot(stripe, TEST_KEY)
+    // Default cap = MAX_LIST_ITEMS (SDK_AUTOPAGE_MAX - 1); the limit is cap + 1 = the ceiling.
+    for (const limit of limits) expect(limit).toBe(MAX_LIST_ITEMS + 1)
+  })
+})
+
 describe('applyBound', () => {
   it('keeps the list intact and reports not-truncated when at or under the cap', () => {
     expect(applyBound([1, 2], 2)).toEqual({ items: [1, 2], truncated: false })

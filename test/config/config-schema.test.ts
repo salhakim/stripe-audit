@@ -11,6 +11,7 @@
 import { describe, it, expect } from 'vitest'
 import Ajv from 'ajv'
 import schema from '../../schemas/stripe-audit.config.schema.json'
+import { configFileSchema } from '../../src/config/config-schema'
 
 describe('stripe-audit.config.schema.json', () => {
   const ajv = new Ajv()
@@ -58,5 +59,26 @@ describe('stripe-audit.config.schema.json', () => {
     const id = (schema as { $id?: string }).$id ?? ''
     expect(id).toContain('salhakim/stripe-audit/')
     expect(id).not.toContain('billing-audit-kit')
+  })
+
+  // ── C18 operational knobs: JSON schema ↔ zod mirror lockstep ──
+  it('accepts the three operational knobs and enforces their bounds', () => {
+    expect(validate({ maxListItems: 5000, requestTimeoutMs: 30000, maxNetworkRetries: 0 })).toBe(
+      true,
+    )
+    expect(validate({ maxListItems: 10000 })).toBe(false) // one over the SDK ceiling
+    expect(validate({ maxListItems: 0 })).toBe(false) // below minimum
+    expect(validate({ requestTimeoutMs: 600001 })).toBe(false) // over maximum
+    expect(validate({ maxNetworkRetries: 11 })).toBe(false) // over maximum
+    expect(validate({ requestTimeoutMs: 1.5 })).toBe(false) // not an integer
+  })
+
+  it('a knob-carrying config validates against BOTH the JSON schema and the zod mirror', () => {
+    const sample = { maxListItems: 5000, requestTimeoutMs: 12345, maxNetworkRetries: 3 }
+    expect(validate(sample)).toBe(true)
+    expect(configFileSchema.safeParse(sample).success).toBe(true)
+    // Both reject the same over-ceiling value — the mirror cannot drift silently.
+    expect(validate({ maxListItems: 10000 })).toBe(false)
+    expect(configFileSchema.safeParse({ maxListItems: 10000 }).success).toBe(false)
   })
 })

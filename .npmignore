@@ -45,6 +45,8 @@ docs/case-study/
 docs/SETTINGS-CHANGE-M6.md
 
 # Dev surface — build from dist/, don't ship sources or tooling config.
+# Local CLI HTML report renders (`--output html`) — dev artifacts, never shipped.
+*.html
 src/
 test/
 ci/

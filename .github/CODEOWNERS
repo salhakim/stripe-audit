@@ -1,0 +1,9 @@
+# CODEOWNERS — default code-owner routing for the public stripe-audit repo.
+#
+# GitHub honors this file at repo root, .github/, or docs/. The single default
+# rule below assigns ownership of every path to @salhakim, so GitHub auto-requests
+# a code-owner review from them on any pull request opened against the public repo.
+# More-specific rules (if ever added) would go below the default and win by
+# last-match-wins precedence.
+
+* @salhakim

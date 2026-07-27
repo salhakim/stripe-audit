@@ -52,6 +52,27 @@
       "uniqueItems": true,
       "minItems": 1,
       "description": "Only run rules in these categories (at least one — an empty list would select no rules). Mirrors the --category flag."
+    },
+    "maxListItems": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9999,
+      "default": 9999,
+      "description": "Maximum items fetched per Stripe list (memory guard for large catalogs). Capped at 9999 — one below the SDK's 10000 auto-pagination ceiling. Default 9999."
+    },
+    "requestTimeoutMs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600000,
+      "default": 30000,
+      "description": "Per-request timeout in milliseconds passed to the Stripe client. Default 30000."
+    },
+    "maxNetworkRetries": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 2,
+      "description": "Number of automatic retries the Stripe client makes on transient network / 5xx errors. 0 disables retries. Default 2."
     }
   }
 }

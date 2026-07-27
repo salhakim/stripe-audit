@@ -5,6 +5,31 @@ All notable changes to **stripe-audit** are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] — 2026-07-14
+
+Security patch for the Markdown reporter, plus a version-reporting fix. No
+functional changes to the audit — same 40 rules, still read-only; it **never
+writes to Stripe**.
+
+### Security
+
+- **Complete output-escaping in the Markdown reporter.** The Markdown escaper
+  neutralized the `|` table delimiter with a backslash but did not escape the
+  backslash itself first, so an account-controlled value containing `\|` (a
+  coupon or product name, a webhook URL) could break out of a table cell in a
+  rendered PR comment / `$GITHUB_STEP_SUMMARY`, and a pre-encoded `&lt;`/`&gt;`
+  could slip past the angle-bracket neutralization. The escaper now escapes the
+  backslash before the pipe and `&` before `<`/`>` (fixes CodeQL
+  `js/incomplete-sanitization`). The HTML, SVG, and Markdown escapers are now
+  consolidated into one audited module so their escape tables can't diverge.
+
+### Fixed
+
+- **`stripe-audit --version` now reports the actual package version.** The
+  version constant had lagged one release behind, so 0.2.2 printed `0.2.1` (and
+  stamped it into the JSON report's `version` field); it is now single-sourced
+  in lockstep with `package.json`.
+
 ## [0.2.2] — 2026-07-10
 
 Profile-polish patch release. No functional changes to the audit — same 40

@@ -16,6 +16,7 @@
 import Stripe from 'stripe'
 import { stripeAccountSnapshotSchema } from './snapshot-schema'
 import { detectKeyMode } from './key'
+import { MAX_LIST_ITEMS } from './config/defaults'
 import type {
   StripeAccountSnapshot,
   SnapshotAccount,
@@ -32,17 +33,10 @@ import type {
   RuleScope,
 } from './types'
 
-/**
- * Hard ceiling the Stripe SDK enforces on `autoPagingToArray({ limit })` — a
- * `limit > 10000` throws (`node_modules/stripe/.../autoPagination.js`: `if (limit > 10000)`).
- * We request `MAX_LIST_ITEMS + 1` to detect overflow, so the kept cap MUST sit one
- * below this ceiling — otherwise the cap+1 request is illegal and every list region
- * throws against the real SDK (the stub masked this; stripe-mock CI caught it).
- */
-const SDK_AUTOPAGE_MAX = 10_000
-
-/** Upper bound on each auto-paginated list (memory guard for large catalogs). */
-const MAX_LIST_ITEMS = SDK_AUTOPAGE_MAX - 1
+// The list cap (`MAX_LIST_ITEMS`, default = SDK_AUTOPAGE_MAX - 1) and the SDK
+// autopage ceiling now live in ./config/defaults — the single source shared with
+// the zod schema, so the config `.max()` bound and the fetcher's `cap + 1`
+// legality can never drift. A per-run override arrives via FetchOptions.maxListItems.
 
 /**
  * Split a fetched list at `cap`, reporting whether it overflowed.
@@ -63,6 +57,12 @@ export function applyBound<T>(items: T[], cap: number): { items: T[]; truncated:
 /** Options for {@link fetchAccountSnapshot}. `deep` is the v0.2 two-speed opt-in. */
 export interface FetchOptions {
   deep?: boolean
+  /**
+   * Per-list item cap (C18 config knob). `undefined` → {@link MAX_LIST_ITEMS}
+   * (the byte-unchanged default). The config schema bounds it to
+   * `1..LIST_ITEMS_CEILING`, so `cap + 1` is always a legal SDK autopage limit.
+   */
+  maxListItems?: number
 }
 
 /**
@@ -108,21 +108,23 @@ async function probeRegion<T>(
 }
 
 /**
- * Scope-probe a LIST region and bound it to `MAX_LIST_ITEMS`.
+ * Scope-probe a LIST region and bound it to `cap` (the effective per-run cap —
+ * {@link FetchOptions.maxListItems} or {@link MAX_LIST_ITEMS}).
  *
- * `fetchList` must request `MAX_LIST_ITEMS + 1` items so {@link applyBound} can
- * detect overflow. A permission-denied region degrades to `[]` (never flagged as
+ * `fetchList` must request `cap + 1` items so {@link applyBound} can detect
+ * overflow. A permission-denied region degrades to `[]` (never flagged as
  * truncated — there was nothing to truncate); a region that overflowed the cap
- * records its scope in `truncated`. Returns the bounded (≤ `MAX_LIST_ITEMS`) list.
+ * records its scope in `truncated`. Returns the bounded (≤ `cap`) list.
  */
 async function probeListRegion<T>(
   scope: RuleScope,
   fetchList: () => Promise<T[]>,
   grants: ScopeGrant[],
   truncated: RuleScope[],
+  cap: number,
 ): Promise<T[]> {
   const all = await probeRegion<T[]>(scope, fetchList, [], grants)
-  const bounded = applyBound(all, MAX_LIST_ITEMS)
+  const bounded = applyBound(all, cap)
   if (bounded.truncated) {
     truncated.push(scope)
   }
@@ -313,11 +315,14 @@ export async function fetchAccountSnapshot(
   // dependence on charges_enabled) — see key.ts (key-exposure threat model).
   const accountMode = detectKeyMode(key).mode
 
-  // Lists are fetched at MAX_LIST_ITEMS + 1 so probeListRegion can distinguish a
-  // catalog of exactly the cap (complete) from a larger one (truncated → flagged).
-  // This equals SDK_AUTOPAGE_MAX (10_000), the largest limit autoPagingToArray
-  // accepts — MAX_LIST_ITEMS is deliberately one below the ceiling so cap+1 is legal.
-  const LIST_LIMIT = MAX_LIST_ITEMS + 1
+  // Effective per-run list cap: the C18 config knob when supplied, else the
+  // byte-unchanged default. The config schema bounds it to 1..LIST_ITEMS_CEILING
+  // (= SDK_AUTOPAGE_MAX - 1), so cap + 1 is always ≤ the SDK autopage ceiling.
+  const cap = options?.maxListItems ?? MAX_LIST_ITEMS
+  // Lists are fetched at cap + 1 so probeListRegion can distinguish a catalog of
+  // exactly the cap (complete) from a larger one (truncated → flagged). cap + 1 is
+  // the largest limit autoPagingToArray accepts because cap ≤ SDK_AUTOPAGE_MAX - 1.
+  const LIST_LIMIT = cap + 1
 
   // allSettled (not all): under a TOTAL failure (e.g. an invalid/expired key → every
   // region 401s) Promise.all surfaces the first rejection but leaves the sibling
@@ -339,6 +344,7 @@ export async function fetchAccountSnapshot(
       () => stripe.webhookEndpoints.list().autoPagingToArray({ limit: LIST_LIMIT }),
       scopeProbe,
       truncated,
+      cap,
     ),
     probeListRegion<Stripe.Price>(
       'prices',
@@ -350,12 +356,14 @@ export async function fetchAccountSnapshot(
           .autoPagingToArray({ limit: LIST_LIMIT }),
       scopeProbe,
       truncated,
+      cap,
     ),
     probeListRegion<Stripe.BillingPortal.Configuration>(
       'billing_portal',
       () => stripe.billingPortal.configurations.list().autoPagingToArray({ limit: LIST_LIMIT }),
       scopeProbe,
       truncated,
+      cap,
     ),
     probeRegion<Stripe.Tax.Settings | null>(
       'tax',
@@ -399,12 +407,14 @@ export async function fetchAccountSnapshot(
         () => stripe.subscriptions.list().autoPagingToArray({ limit: LIST_LIMIT }),
         scopeProbe,
         truncated,
+        cap,
       ),
       probeListRegion<Stripe.Billing.Meter>(
         'meters',
         () => stripe.billing.meters.list().autoPagingToArray({ limit: LIST_LIMIT }),
         scopeProbe,
         truncated,
+        cap,
       ),
       probeListRegion<Stripe.V2.Core.EventDestination>(
         'event_destinations',
@@ -413,6 +423,7 @@ export async function fetchAccountSnapshot(
         () => stripe.v2.core.eventDestinations.list().autoPagingToArray({ limit: LIST_LIMIT }),
         scopeProbe,
         truncated,
+        cap,
       ),
       probeListRegion<Stripe.Coupon>(
         'coupons',
@@ -420,6 +431,7 @@ export async function fetchAccountSnapshot(
         () => stripe.coupons.list().autoPagingToArray({ limit: LIST_LIMIT }),
         scopeProbe,
         truncated,
+        cap,
       ),
     ])
     for (const region of deepSettled) {

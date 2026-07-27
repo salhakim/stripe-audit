@@ -101,6 +101,24 @@ What runs automatically, and where it's defined:
 
 ---
 
+## f. Social preview image
+
+The repo's social card (the image shown when the repo is shared on
+social/chat) is **not driven by a committed file alone** — GitHub renders it
+only after a one-time manual upload.
+
+- **Source of truth:** `assets/social-preview.png` — a 1280×640, ≤1 MB PNG,
+  committed to the repo and shipped to the public mirror via the
+  `export-public.sh` allowlist (`# community/discoverability (C16)` group).
+- **Manual step (one-time, per public repo):** **Settings → Social preview →**
+  upload `assets/social-preview.png`. This is a repo-*settings* action; the
+  `sync-public.sh` mirror never touches settings, so it must be done by hand.
+- **When the card changes:** replace the committed PNG (keep 1280×640, ≤1 MB),
+  then re-upload it under Settings — the committed file and the uploaded card
+  are two separate places that must be kept in sync.
+
+---
+
 *Sources: [Diátaxis](https://diataxis.fr), [Keep a Changelog](https://keepachangelog.com),
 [npm packaging docs](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#files),
 [Contributor Covenant](https://www.contributor-covenant.org), and GitHub's community-profile

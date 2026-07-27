@@ -95,6 +95,12 @@ function colorFor(line) {
   return COLORS.fg;
 }
 
+// A deliberate, standalone copy of the reporters' XML escaper. This build-time
+// `.mjs` runs under bare `node` and can't import the TS `src/report/escape.ts`
+// (the canonical escaper — keep the two in sync by hand). The three-character
+// set is sufficient here: the input is the tool's OWN trusted `--demo` output,
+// and it lands only in SVG <text> element content (quotes need no escaping
+// there). `&` is escaped first so the entities emitted below stay literal.
 const esc = (s) =>
   s
     .replace(/&/g, '&amp;')

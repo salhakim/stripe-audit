@@ -32,8 +32,10 @@ const HOSTILE_FINDING: Finding = {
   title: `Product "Pro\n## Grade A — all clear\n" has no lookup_key`,
   affectedResourceId: 'prod_x',
   affectedResourceType: 'product',
-  // Inline HTML + a table-breaking pipe (a hostile webhook URL shape).
-  description: `Webhook https://evil|table.test/h <img src=x onerror=alert(1)> is misconfigured`,
+  // Inline HTML + table-breaking pipes + repeated ampersands + a literal
+  // backslash-pipe (the escape-the-escape-char breakout vector). Every
+  // metacharacter repeats, so a non-global `.replace` regression fails loudly.
+  description: `Webhook https://evil|table.test/h & & & <img src=x onerror=alert(1)> path\\|injection|here is misconfigured`,
   // A terminal escape sequence (clear screen + recolor).
   remediation: `Set a lookup_key ${ESC}[2J${ESC}[31m(gotcha)`,
   // A non-http(s) scheme that must never become an active link.
@@ -77,6 +79,12 @@ describe('reporters neutralize hostile account-controlled finding text', () => {
     expect(md).toContain('&lt;img src=x onerror=')
     // The table-breaking pipe in a value is escaped.
     expect(md).toContain('evil\\|table.test')
+    // Every repeated ampersand is entity-encoded — a lost /g or a missing
+    // &-escape (the single-occurrence form never exercised this) would fail here.
+    expect(md).toContain('&amp; &amp; &amp;')
+    // The literal backslash is escaped BEFORE the pipe, so no bare delimiter
+    // survives the breakout attempt (\| -> \\\|).
+    expect(md).toContain('path\\\\\\|injection')
     // A non-http(s) docsUrl renders as inert text, never an active link.
     expect(md).not.toContain('](javascript:')
   })
@@ -94,6 +102,8 @@ describe('reporters neutralize hostile account-controlled finding text', () => {
     const html = renderHtml(hostileResult())
     expect(html).not.toContain('<img src=x onerror=')
     expect(html).toContain('&lt;img')
+    // The double-quotes in the title are entity-escaped (previously unasserted).
+    expect(html).toContain('&quot;')
     expect(html).not.toMatch(/href="javascript:/i)
   })
 

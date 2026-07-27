@@ -19,6 +19,7 @@
  * pre-JS scan. Pure: no key material, no network — the output carries no key.
  */
 import { describeFilter } from './result'
+import { escapeHtml, escapeAttr } from './escape'
 import type { AuditResult, BaselineDelta } from './result'
 import type { Category, Finding, Severity } from '../types'
 
@@ -29,21 +30,6 @@ const SEVERITY_LABEL: Record<Severity, string> = {
   medium: 'Medium',
   low: 'Low',
   info: 'Info',
-}
-
-/** Escape text for safe interpolation into HTML element content. */
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
-/** Escape a value for safe interpolation into a double-quoted HTML attribute. */
-function escapeAttr(value: string): string {
-  return escapeHtml(value)
 }
 
 /** Distinct finding categories present, in first-seen order. */

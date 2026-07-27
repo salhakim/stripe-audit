@@ -20,6 +20,12 @@
  * reject it.
  */
 import { z } from 'zod'
+import {
+  LIST_ITEMS_CEILING,
+  MAX_LIST_ITEMS,
+  REQUEST_TIMEOUT_MS,
+  MAX_NETWORK_RETRIES,
+} from './defaults'
 
 /** `failOn` thresholds a config may carry — mirrors the `FailOnLevel` union in `../exit-codes`. */
 const FAIL_ON_VALUES = ['critical', 'high', 'medium', 'low', 'none'] as const
@@ -41,10 +47,19 @@ const CATEGORY_VALUES = [
 ] as const
 
 /**
- * The 7 settings keys BOTH config forms may carry (Sal's fork resolution:
+ * The settings keys BOTH config forms may carry (Sal's fork resolution:
  * executable configs may carry settings — one file serves the
  * plugin-author-with-settings use case). Spread into both schemas so the two
  * forms can never drift.
+ *
+ * The three C18 operational knobs (`maxListItems` / `requestTimeoutMs` /
+ * `maxNetworkRetries`) carry `.default(<constant>)` WITHOUT `.optional()`: unlike
+ * the CLI-mirrored keys above them (whose fallback is supplied downstream by the
+ * flag merge), these must always resolve to a concrete number when a file is
+ * loaded, so `.default()` REPLACES a missing key with today's constant
+ * (byte-unchanged behavior) while a present-but-out-of-range value still fails
+ * loud as a `ZodError` → `ConfigError` → exit 2. Bounds + defaults are imported
+ * from `./defaults` so the schema and the runtime fallbacks cannot drift.
  */
 const settingsShape = {
   /** Mirrors `--fail-on`. */
@@ -61,6 +76,12 @@ const settingsShape = {
   severity: z.array(z.enum(SEVERITY_VALUES)).min(1).optional(),
   /** Mirrors `--category` (E1a: an empty list is rejected — it would select no rules). */
   category: z.array(z.enum(CATEGORY_VALUES)).min(1).optional(),
+  /** Per-list item cap; `1..LIST_ITEMS_CEILING` (one below the SDK autopage ceiling so `cap+1` stays legal). */
+  maxListItems: z.number().int().min(1).max(LIST_ITEMS_CEILING).default(MAX_LIST_ITEMS),
+  /** Per-request timeout in ms; `1..600_000`. */
+  requestTimeoutMs: z.number().int().min(1).max(600_000).default(REQUEST_TIMEOUT_MS),
+  /** SDK network-retry count; `0..10` (`0` disables automatic retries). */
+  maxNetworkRetries: z.number().int().min(0).max(10).default(MAX_NETWORK_RETRIES),
 }
 
 /**

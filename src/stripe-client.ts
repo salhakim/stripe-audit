@@ -9,6 +9,7 @@
  * re-declaring it, keeping a single source of truth.
  */
 import Stripe from 'stripe'
+import { MAX_NETWORK_RETRIES, REQUEST_TIMEOUT_MS } from './config/defaults'
 
 /**
  * The exact `apiVersion` literal the installed SDK accepts, derived from its own
@@ -27,12 +28,6 @@ type PinnedApiVersion = NonNullable<
  * together (and re-capture any version-stamped fixtures).
  */
 export const STRIPE_API_VERSION: PinnedApiVersion = '2026-06-24.dahlia'
-
-/** Bounded automatic retry for transient network/5xx errors (SDK-level). */
-const MAX_NETWORK_RETRIES = 2
-
-/** Per-request timeout, in milliseconds. */
-const REQUEST_TIMEOUT_MS = 30_000
 
 /**
  * Test-only base-URL seam, LOOPBACK-ONLY by construction.
@@ -81,13 +76,22 @@ function testBaseOverride(): { host: string; port: number; protocol: 'http' | 'h
  * request-timing headers to every call. A read-only audit tool touches nothing
  * it doesn't need to, so we opt out and keep the client's footprint to the reads
  * the audit actually performs.
+ *
+ * `opts.maxNetworkRetries` / `opts.timeout` are the C18 config knobs threaded in
+ * by the CLI. Each falls back to its {@link ./config/defaults} constant on
+ * `undefined` (no config file, or a config that omits the knob), so a config-free
+ * call is byte-unchanged. A `0` retry count is honored (it disables SDK retries)
+ * — `??` substitutes only on `undefined`, never on a valid `0`.
  */
-export function createStripeClient(key: string): Stripe {
+export function createStripeClient(
+  key: string,
+  opts?: { maxNetworkRetries?: number; timeout?: number },
+): Stripe {
   const override = testBaseOverride()
   return new Stripe(key, {
     apiVersion: STRIPE_API_VERSION,
-    maxNetworkRetries: MAX_NETWORK_RETRIES,
-    timeout: REQUEST_TIMEOUT_MS,
+    maxNetworkRetries: opts?.maxNetworkRetries ?? MAX_NETWORK_RETRIES,
+    timeout: opts?.timeout ?? REQUEST_TIMEOUT_MS,
     typescript: true,
     telemetry: false,
     ...(override !== null && {

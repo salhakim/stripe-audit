@@ -1,6 +1,6 @@
 {
   "name": "stripe-audit",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A read-only Stripe billing audit & lint CLI — scans a Stripe account and reports revenue-losing misconfigurations as severity-ranked findings.",
   "keywords": [
     "stripe",

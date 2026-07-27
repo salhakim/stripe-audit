@@ -30,6 +30,24 @@ describe('createStripeClient', () => {
     const client = createStripeClient(TEST_KEY)
     expect(client.getTelemetryEnabled()).toBe(false)
   })
+
+  // ── C18 config knobs: maxNetworkRetries / timeout overrides ──
+  it('applies the built-in defaults when no overrides are passed (byte-unchanged)', () => {
+    const client = createStripeClient(TEST_KEY)
+    expect(client.getMaxNetworkRetries()).toBe(2)
+    expect(client.getApiField('timeout')).toBe(30_000)
+  })
+
+  it('honors overridden maxNetworkRetries and timeout', () => {
+    const client = createStripeClient(TEST_KEY, { maxNetworkRetries: 5, timeout: 12_345 })
+    expect(client.getMaxNetworkRetries()).toBe(5)
+    expect(client.getApiField('timeout')).toBe(12_345)
+  })
+
+  it('honors maxNetworkRetries: 0 (disables SDK retries) — a valid 0, not a fallback', () => {
+    const client = createStripeClient(TEST_KEY, { maxNetworkRetries: 0 })
+    expect(client.getMaxNetworkRetries()).toBe(0)
+  })
 })
 
 describe('responseApiVersion', () => {

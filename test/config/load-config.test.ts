@@ -20,6 +20,18 @@ import { loadConfig, coreOnlyConfig, ConfigError } from '../../src/config/load-c
 import { configFileSchema } from '../../src/config/config-schema'
 import * as cli from '../../src/cli'
 import { EXIT_OK, EXIT_FINDINGS, EXIT_CONFIG } from '../../src/exit-codes'
+import { MAX_LIST_ITEMS, REQUEST_TIMEOUT_MS, MAX_NETWORK_RETRIES } from '../../src/config/defaults'
+
+/**
+ * The three C18 operational knobs carry `.default(<constant>)` in the schema, so
+ * EVERY loaded config's `settings` gains them (byte-unchanged runtime values).
+ * A file that omits them still resolves to these concrete numbers.
+ */
+const KNOB_DEFAULTS = {
+  maxListItems: MAX_LIST_ITEMS,
+  requestTimeoutMs: REQUEST_TIMEOUT_MS,
+  maxNetworkRetries: MAX_NETWORK_RETRIES,
+} as const
 
 /** Make a fresh fixture dir; caller-provided files are written into it. */
 function fixtureDir(files: Record<string, string> = {}): string {
@@ -98,7 +110,7 @@ describe('loadConfig — resolution + discovery', () => {
     const config = await loadConfig({ workingDirectory: dir })
     expect(config.source).toBe('file')
     expect(config.path).toBe(join(dir, 'stripe-audit.config.json'))
-    expect(config.settings).toEqual({ failOn: 'none' })
+    expect(config.settings).toEqual({ failOn: 'none', ...KNOB_DEFAULTS })
   })
 
   it('--config resolves a relative path against the working directory', async () => {
@@ -106,7 +118,7 @@ describe('loadConfig — resolution + discovery', () => {
     const config = await loadConfig({ workingDirectory: dir, configPath: 'my-config.json' })
     expect(config.source).toBe('file')
     expect(config.path).toBe(join(dir, 'my-config.json'))
-    expect(config.settings).toEqual({ deep: true })
+    expect(config.settings).toEqual({ deep: true, ...KNOB_DEFAULTS })
   })
 
   it('a missing --config file is a fail-loud ConfigError naming the path (exit-code 2)', async () => {
@@ -191,6 +203,52 @@ describe('loadConfig — JSON validation (data-only; plain-language errors, no c
     expect(configFileSchema.safeParse({ category: [] }).success).toBe(false)
   })
 
+  it('an out-of-range numeric knob is a key-only ConfigError, never echoing the value (S1)', async () => {
+    const dir = fixtureDir({ 'stripe-audit.config.json': '{ "requestTimeoutMs": -5 }' })
+    const err = (await loadConfig({ workingDirectory: dir }).then(
+      () => null,
+      (e: unknown) => e,
+    )) as ConfigError
+    expect(err).toBeInstanceOf(ConfigError)
+    expect(err.exitCode).toBe(2)
+    expect(err.message).toContain('requestTimeoutMs')
+    // Numeric too_small must NOT reuse the array "empty filter" copy.
+    expect(err.message).not.toMatch(/empty (list|filter)/)
+    // S1 asserts the human-readable REASON never echoes the offending value.
+    // The full message embeds the mkdtemp temp-dir path (e.g. ".../sba-config-5.../"),
+    // which can incidentally contain "-5"; split on the stable "is invalid:" literal
+    // and assert on the reason tail so the check never flakes on the path.
+    const reason = err.message.split('is invalid:')[1] ?? err.message
+    expect(reason).not.toContain('-5')
+  })
+
+  it('E1 — maxListItems: 10000 (one over the SDK ceiling) fails load with exit 2', async () => {
+    // Pins the illegal cap+1 footgun: a cap AT the SDK ceiling makes cap+1 = 10001,
+    // which the SDK rejects. The .max(LIST_ITEMS_CEILING) bound refuses it at load.
+    const dir = fixtureDir({ 'stripe-audit.config.json': '{ "maxListItems": 10000 }' })
+    const err = (await loadConfig({ workingDirectory: dir }).then(
+      () => null,
+      (e: unknown) => e,
+    )) as ConfigError
+    expect(err).toBeInstanceOf(ConfigError)
+    expect(err.exitCode).toBe(2)
+    expect(err.message).toContain('maxListItems')
+    expect(err.message).toMatch(/maximum/)
+  })
+
+  it('maxNetworkRetries: 0 is valid (disables retries) and loads', async () => {
+    const dir = fixtureDir({ 'stripe-audit.config.json': '{ "maxNetworkRetries": 0 }' })
+    const config = await loadConfig({ workingDirectory: dir })
+    expect(config.source).toBe('file')
+    expect(config.settings?.maxNetworkRetries).toBe(0)
+  })
+
+  it('an absent-knob config still resolves the three knobs to their defaults', async () => {
+    const dir = fixtureDir({ 'stripe-audit.config.json': '{ "failOn": "none" }' })
+    const config = await loadConfig({ workingDirectory: dir })
+    expect(config.settings).toMatchObject(KNOB_DEFAULTS)
+  })
+
   it('accepts the full settings surface including an inert $schema reference', async () => {
     const dir = fixtureDir({
       'stripe-audit.config.json': JSON.stringify({
@@ -213,6 +271,7 @@ describe('loadConfig — JSON validation (data-only; plain-language errors, no c
       output: 'json',
       severity: ['critical', 'high'],
       category: ['billing'],
+      ...KNOB_DEFAULTS,
     })
   })
 })
@@ -240,7 +299,7 @@ describe('loadConfig — executable configs (SECURITY-sensitive)', () => {
     expect(config.plugins).toHaveLength(1)
     expect(config.plugins?.[0].key).toBe('fixture-plugin')
     expect(config.plugins?.[0].rules.map((r) => r.id)).toEqual(['ALWAYS_QUIET'])
-    expect(config.settings).toEqual({ failOn: 'none' })
+    expect(config.settings).toEqual({ failOn: 'none', ...KNOB_DEFAULTS })
   })
 
   it('loads a .cjs manifest — module.exports arrives as the default export (Node interop)', async () => {

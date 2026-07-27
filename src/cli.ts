@@ -616,8 +616,18 @@ async function runCli(flags: CliOptions): Promise<void> {
   // and exit 3. --deep flips the fetch to deep mode.
   let snapshot: StripeAccountSnapshot
   try {
-    const stripe = createStripeClient(key)
-    snapshot = await fetchAccountSnapshot(stripe, key, { deep: Boolean(opts.deep) })
+    // C18 knobs: config.settings carries concrete numbers when a file loaded
+    // (zod `.default()` fills any omitted knob); undefined with no file, in which
+    // case createStripeClient / fetchAccountSnapshot fall back to the same
+    // ./config/defaults constants — so a config-free run is byte-unchanged.
+    const stripe = createStripeClient(key, {
+      maxNetworkRetries: config.settings?.maxNetworkRetries,
+      timeout: config.settings?.requestTimeoutMs,
+    })
+    snapshot = await fetchAccountSnapshot(stripe, key, {
+      deep: Boolean(opts.deep),
+      maxListItems: config.settings?.maxListItems,
+    })
   } catch (err) {
     reportRuntimeError(err, key)
     return

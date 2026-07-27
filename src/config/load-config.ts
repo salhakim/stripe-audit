@@ -265,7 +265,17 @@ function describeConfigIssues(error: ZodError): string {
       return `unknown key(s) ${keys} at ${where}${pluginHint}`
     }
     if (issue.code === 'too_small') {
-      return `empty list at ${where} — an empty filter would select no rules; remove the key or list at least one value`
+      // Array `.min(1)` (severity/category) vs numeric `.min()` (the C18 knobs)
+      // both surface as too_small — branch on origin so a numeric knob never gets
+      // the list-specific "empty filter" copy. Only the schema bound is named,
+      // never the offending value (S1).
+      if (issue.origin === 'array') {
+        return `empty list at ${where} — an empty filter would select no rules; remove the key or list at least one value`
+      }
+      return `value at ${where} is below the allowed minimum (${String(issue.minimum)})`
+    }
+    if (issue.code === 'too_big') {
+      return `value at ${where} is above the allowed maximum (${String(issue.maximum)})`
     }
     return `invalid value at ${where}`
   })

@@ -14,6 +14,7 @@
  * Pure: it renders `AuditResult.summary` only — a severity tally + score/grade —
  * and never touches key material, so the output can never leak a Stripe key.
  */
+import { escapeXml } from './escape'
 import type { AuditResult, AuditSummary } from './result'
 import type { Severity } from '../types'
 
@@ -54,16 +55,6 @@ export function worstSeverityOf(summary: AuditSummary): Severity | null {
 export function badgeColorOf(summary: AuditSummary): string {
   const worst = worstSeverityOf(summary)
   return worst ? BADGE_SEVERITY_COLOR[worst] : BADGE_CLEAN_COLOR
-}
-
-/** Escape text for safe interpolation into SVG element content / attributes. */
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
 }
 
 // Flat-badge geometry (shields.io "flat" style): 20px tall, 11px Verdana-ish text.

@@ -301,9 +301,31 @@ it entirely):
   rules** via a small, stable plugin seam: `import { defineRule, resolveRules } from
   'stripe-audit'` — no internal paths, your rules namespaced under your plugin key.
 - **Both forms may carry settings** (`failOn`, `output`, `severity`, `category`,
-  `deep`, `baseline`, `ignore`) — a CLI flag outranks the config, per key. Discovery
+  `deep`, `baseline`, `ignore`, `maxListItems`, `requestTimeoutMs`,
+  `maxNetworkRetries`) — a CLI flag outranks the config, per key. Discovery
   is fail-loud: more than one `stripe-audit.config.*` in the directory is a config
   error naming the candidates, never a silent pick.
+
+### Operational knobs
+
+Three settings tune how the audit talks to the Stripe API. Each defaults to
+today's built-in value, so omitting it leaves behavior byte-unchanged; an
+out-of-range value fails the config load with exit 2 (never a silent clamp).
+
+| Key | Default | Bounds | What it controls |
+|---|---|---|---|
+| `maxListItems` | `9999` | `1`–`9999` | Max items fetched per Stripe list (memory guard for large catalogs). Capped one below the SDK's 10000 auto-pagination ceiling. |
+| `requestTimeoutMs` | `30000` | `1`–`600000` | Per-request timeout, in milliseconds. |
+| `maxNetworkRetries` | `2` | `0`–`10` | Automatic retries on transient network / 5xx errors. `0` disables retries. |
+
+```jsonc
+{
+  "$schema": "./node_modules/stripe-audit/schemas/stripe-audit.config.schema.json",
+  "maxListItems": 9999,      // memory guard; 1–9999
+  "requestTimeoutMs": 30000, // per-request timeout in ms; 1–600000
+  "maxNetworkRetries": 2     // transient-error retries; 0 disables
+}
+```
 
 Full guide: [`docs/writing-plugins.md`](./docs/writing-plugins.md) · runnable
 starting point: [`examples/stripe-audit-plugin-example/`](./examples/stripe-audit-plugin-example/).
