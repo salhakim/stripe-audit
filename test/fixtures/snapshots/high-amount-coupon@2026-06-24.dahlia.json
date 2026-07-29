@@ -66,7 +66,9 @@
     },
     "byBillingMode": {
       "flexible": 2
-    }
+    },
+    "byTrialEndBehavior": {},
+    "pausedCollectionCount": 0
   },
   "meters": [
     {
@@ -95,7 +97,8 @@
       "amountOff": 500,
       "currency": "usd",
       "duration": "once",
-      "valid": true
+      "valid": true,
+      "appliesToProducts": null
     },
     {
       "id": "co_grand",
@@ -104,7 +107,8 @@
       "amountOff": 75000,
       "currency": "usd",
       "duration": "once",
-      "valid": true
+      "valid": true,
+      "appliesToProducts": null
     }
   ],
   "scopeProbe": [

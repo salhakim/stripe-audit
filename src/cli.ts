@@ -164,10 +164,16 @@ export function formatRuleList(rules: readonly Rule[] = ALL_RULES): string {
     `${id.padEnd(idWidth)}  ${scope.padEnd(scopeWidth)}  ${category.padEnd(catWidth)}  ${severity}`
   const header = line('ID', 'SCOPE', 'CATEGORY', 'SEVERITY')
   const rows = rules.map((r) => line(r.id, isDeepRule(r) ? 'deep' : 'base', r.category, r.severity))
+  // The dropped table carries the CATEGORY — the lever that would change the
+  // verdict (api-gap / scope-gated / low-value) — because "not built" alone does
+  // not tell a reader whether it is Stripe's constraint or ours.
+  const dropWidth = Math.max(...DROPPED_RULES.map((d) => d.category.length))
   const dropped = [
     '',
     'DROPPED (consciously not built — evidence in the repo per entry)',
-    ...DROPPED_RULES.map((d) => `${d.id.padEnd(idWidth)}  ${d.reason}`),
+    ...DROPPED_RULES.map(
+      (d) => `${d.id.padEnd(idWidth)}  ${d.category.padEnd(dropWidth)}  ${d.reason}`,
+    ),
   ]
   return [header, ...rows, ...dropped].join('\n')
 }
@@ -189,9 +195,13 @@ export function formatRuleListJson(rules: readonly Rule[] = ALL_RULES): string {
       })),
       dropped: DROPPED_RULES.map((d) => ({
         id: d.id,
+        category: d.category,
         reason: d.reason,
         decidedIn: d.decidedIn,
         evidence: d.evidence,
+        // Omitted entirely when absent, so the shape stays clean for consumers
+        // rather than carrying `revisitCondition: undefined` keys.
+        ...(d.revisitCondition === undefined ? {} : { revisitCondition: d.revisitCondition }),
       })),
     },
     null,
@@ -616,7 +626,7 @@ async function runCli(flags: CliOptions): Promise<void> {
   // and exit 3. --deep flips the fetch to deep mode.
   let snapshot: StripeAccountSnapshot
   try {
-    // C18 knobs: config.settings carries concrete numbers when a file loaded
+    // Operational knobs: config.settings carries concrete numbers when a file loaded
     // (zod `.default()` fills any omitted knob); undefined with no file, in which
     // case createStripeClient / fetchAccountSnapshot fall back to the same
     // ./config/defaults constants — so a config-free run is byte-unchanged.

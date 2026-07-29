@@ -19,6 +19,7 @@ import { pricingRules } from './pricing'
 import { configurationRules } from './configuration'
 import { securityRules } from './security'
 import { billingModeRules } from './billing-mode'
+import { subscriptionRules } from './subscriptions'
 import { meterErrorRules } from './meter-error'
 import { couponRules } from './coupons'
 
@@ -30,6 +31,7 @@ export const ALL_RULES: Rule[] = [
   ...configurationRules,
   ...securityRules,
   ...billingModeRules,
+  ...subscriptionRules,
   ...meterErrorRules,
   ...couponRules,
 ]

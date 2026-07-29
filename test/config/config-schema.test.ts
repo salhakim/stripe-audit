@@ -61,7 +61,7 @@ describe('stripe-audit.config.schema.json', () => {
     expect(id).not.toContain('billing-audit-kit')
   })
 
-  // ── C18 operational knobs: JSON schema ↔ zod mirror lockstep ──
+  // ── operational knobs: JSON schema ↔ zod mirror lockstep ──
   it('accepts the three operational knobs and enforces their bounds', () => {
     expect(validate({ maxListItems: 5000, requestTimeoutMs: 30000, maxNetworkRetries: 0 })).toBe(
       true,

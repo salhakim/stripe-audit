@@ -280,7 +280,7 @@ exports[`renderHtml — self-contained PRIMARY visual > matches the committed sn
 </article>
 </section>
 </main>
-<section class="skipped"><h2>Skipped rules</h2><ul><li><code>BILLING_MODE_NOT_MIGRATED</code> — requires-deep</li><li><code>METER_ERROR_NOT_MONITORED</code> — requires-deep</li><li><code>HIGH_PERCENT_COUPON</code> — requires-deep</li><li><code>HIGH_AMOUNT_COUPON</code> — requires-deep</li><li><code>FOREVER_COUPON_STILL_VALID</code> — requires-deep</li></ul></section>
+<section class="skipped"><h2>Skipped rules</h2><ul><li><code>BILLING_MODE_NOT_MIGRATED</code> — requires-deep</li><li><code>TRIAL_WITHOUT_PAYMENT_COLLECTION</code> — requires-deep</li><li><code>SUBSCRIPTIONS_PAST_DUE_ACCUMULATING</code> — requires-deep</li><li><code>SUBSCRIPTION_COLLECTION_PAUSED</code> — requires-deep</li><li><code>METER_ERROR_NOT_MONITORED</code> — requires-deep</li><li><code>HIGH_PERCENT_COUPON</code> — requires-deep</li><li><code>HIGH_AMOUNT_COUPON</code> — requires-deep</li><li><code>FOREVER_COUPON_STILL_VALID</code> — requires-deep</li></ul></section>
 <section class="suppressed"><h2>Suppressed (0)</h2><p>No findings were suppressed.</p></section>
 <script>(function () {
     var cards = Array.prototype.slice.call(document.querySelectorAll('.finding'));

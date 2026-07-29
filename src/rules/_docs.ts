@@ -32,6 +32,7 @@ export const DOCS = {
   taxSetup: 'https://docs.stripe.com/tax/set-up',
   // subscriptions (deep region)
   subscriptions: 'https://docs.stripe.com/api/subscriptions',
+  revenueRecovery: 'https://docs.stripe.com/billing/revenue-recovery',
   // coupons (deep region)
   coupons: 'https://docs.stripe.com/api/coupons',
   // event destinations (v2)

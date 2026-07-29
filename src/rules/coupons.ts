@@ -34,6 +34,29 @@ export const DEFAULT_HIGH_PERCENT_THRESHOLD = 90
  */
 export const DEFAULT_HIGH_AMOUNT_THRESHOLD = 50_000
 
+/**
+ * How wide a coupon's discount reaches, from `applies_to.products`.
+ *
+ * An unscoped coupon (`null`) hits the whole catalog — the worst case, and the
+ * default, since `applies_to` is only present when someone deliberately narrowed
+ * it. An EMPTY array is treated as unscoped too: Stripe does not produce a
+ * restriction to zero products, and "scoped to 0 product(s)" would be a
+ * confusing claim to print at an operator.
+ *
+ * The linkage is product-level only. There is no coupon→price linkage in
+ * Stripe's model, which is why `COUPON_FOREVER_ON_ALL_PRICES` is a permanent
+ * non-goal (see `src/rules/dropped.ts`) and why this reports a COUNT rather than
+ * resolving product names — that would need a cross-region join the snapshot
+ * deliberately does not do.
+ */
+function blastRadius(appliesToProducts: string[] | null): string {
+  const count = appliesToProducts?.length ?? 0
+  if (count === 0) {
+    return 'It is not scoped to any product, so it applies to ALL products in the catalog.'
+  }
+  return `It is scoped to ${count} product${count === 1 ? '' : 's'}.`
+}
+
 /** A currently-valid coupon whose percent_off is at giveaway level. */
 export const HIGH_PERCENT_COUPON: Rule = defineRule({
   id: 'HIGH_PERCENT_COUPON',
@@ -127,7 +150,8 @@ export const FOREVER_COUPON_STILL_VALID: Rule = defineRule({
           description:
             `Coupon '${coupon.name ?? coupon.id}' has duration 'forever': once applied, it discounts ` +
             'every invoice for that customer indefinitely. While it stays valid, every new redemption is ' +
-            'a permanent revenue reduction.',
+            'a permanent revenue reduction. ' +
+            blastRadius(coupon.appliesToProducts),
           remediation:
             "Audit whether the forever discount is intentional. If not, delete the coupon or bound it " +
             "(redeem_by / max_redemptions); prefer duration 'once' or 'repeating' for promotions.",

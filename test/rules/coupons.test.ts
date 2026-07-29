@@ -25,6 +25,7 @@ const coupon = (over: Partial<SnapshotCoupon> = {}): SnapshotCoupon => ({
   currency: null,
   duration: 'once',
   valid: true,
+  appliesToProducts: null,
   ...over,
 })
 
@@ -168,6 +169,39 @@ describe('FOREVER_COUPON_STILL_VALID', () => {
     expect(findings[0].affectedResourceId).toBe('co_forever')
     expect(findings[0].severity).toBe('medium')
     expect(findings[0].docsUrl).toMatch(/^https:\/\/(stripe\.com|docs\.stripe\.com)\//)
+  })
+
+  it('states the blast radius: unscoped means ALL products', () => {
+    const [finding] = FOREVER_COUPON_STILL_VALID.check(
+      snapWith([coupon({ id: 'co_forever', duration: 'forever', appliesToProducts: null })]),
+    )
+    expect(finding.description).toContain('applies to ALL products')
+  })
+
+  it('states the blast radius: a scoped coupon reports its product count', () => {
+    const [finding] = FOREVER_COUPON_STILL_VALID.check(
+      snapWith([
+        coupon({ id: 'co_forever', duration: 'forever', appliesToProducts: ['prod_a', 'prod_b'] }),
+      ]),
+    )
+    expect(finding.description).toContain('scoped to 2 products')
+  })
+
+  it('singularizes a one-product scope', () => {
+    const [finding] = FOREVER_COUPON_STILL_VALID.check(
+      snapWith([coupon({ id: 'co_forever', duration: 'forever', appliesToProducts: ['prod_a'] })]),
+    )
+    expect(finding.description).toContain('scoped to 1 product.')
+  })
+
+  it('treats an empty product list as unscoped, never "scoped to 0"', () => {
+    // Stripe does not produce a restriction to zero products; printing
+    // "scoped to 0 product(s)" would be a confusing claim to make at an operator.
+    const [finding] = FOREVER_COUPON_STILL_VALID.check(
+      snapWith([coupon({ id: 'co_forever', duration: 'forever', appliesToProducts: [] })]),
+    )
+    expect(finding.description).toContain('applies to ALL products')
+    expect(finding.description).not.toContain('scoped to 0')
   })
 
   it('is clean when forever coupons are no longer valid, or region is null', () => {

@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1855" height="2004" viewBox="0 0 1855 2004" role="img" aria-label="stripe-audit --demo terminal output">
-  <rect width="1855" height="2004" rx="8" fill="#0d1117"/>
-  <rect width="1855" height="28" rx="8" fill="#161b22"/>
-  <rect y="20" width="1855" height="8" fill="#161b22"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="3123" height="2004" viewBox="0 0 3123 2004" role="img" aria-label="stripe-audit --demo terminal output">
+  <rect width="3123" height="2004" rx="8" fill="#0d1117"/>
+  <rect width="3123" height="28" rx="8" fill="#161b22"/>
+  <rect y="20" width="3123" height="8" fill="#161b22"/>
   <circle cx="18" cy="14" r="5" fill="#ff5f56"/>
   <circle cx="36" cy="14" r="5" fill="#ffbd2e"/>
   <circle cx="54" cy="14" r="5" fill="#27c93f"/>
-  <text x="927.5" y="18" fill="#8b949e" text-anchor="middle" font-size="12">stripe-audit --demo</text>
+  <text x="1561.5" y="18" fill="#8b949e" text-anchor="middle" font-size="12">stripe-audit --demo</text>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="14" xml:space="preserve">
   <text x="20" y="60" fill="#3fb950">stripe-audit</text>
   <text x="20" y="80" fill="#8b949e">Stripe API 2026-06-24.dahlia · account live · &lt;run timestamp&gt;</text>
@@ -93,7 +93,7 @@
   <text x="20" y="1880" fill="#c9d1d9">    Review v2 event destinations separately in the Stripe Dashboard if your integration uses them.</text>
   <text x="20" y="1900" fill="#c9d1d9">  • Restricted key did not grant every read scope</text>
   <text x="20" y="1920" fill="#c9d1d9">    Grant the key read access to tax for a complete audit, or accept the reduced coverage.</text>
-  <text x="20" y="1960" fill="#c9d1d9">Skipped rules: BILLING_MODE_NOT_MIGRATED (requires-deep), METER_ERROR_NOT_MONITORED (requires-deep), HIGH_PERCENT_COUPON (requires-deep), HIGH_AMOUNT_COUPON (requires-deep), FOREVER_COUPON_STILL_VALID (requires-deep)</text>
+  <text x="20" y="1960" fill="#c9d1d9">Skipped rules: BILLING_MODE_NOT_MIGRATED (requires-deep), TRIAL_WITHOUT_PAYMENT_COLLECTION (requires-deep), SUBSCRIPTIONS_PAST_DUE_ACCUMULATING (requires-deep), SUBSCRIPTION_COLLECTION_PAUSED (requires-deep), METER_ERROR_NOT_MONITORED (requires-deep), HIGH_PERCENT_COUPON (requires-deep), HIGH_AMOUNT_COUPON (requires-deep), FOREVER_COUPON_STILL_VALID (requires-deep)</text>
   <text x="20" y="1980" fill="#c9d1d9">Suppressed (0)</text>
   </g>
 </svg>

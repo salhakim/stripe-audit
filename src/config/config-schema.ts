@@ -52,7 +52,7 @@ const CATEGORY_VALUES = [
  * plugin-author-with-settings use case). Spread into both schemas so the two
  * forms can never drift.
  *
- * The three C18 operational knobs (`maxListItems` / `requestTimeoutMs` /
+ * The three operational knobs (`maxListItems` / `requestTimeoutMs` /
  * `maxNetworkRetries`) carry `.default(<constant>)` WITHOUT `.optional()`: unlike
  * the CLI-mirrored keys above them (whose fallback is supplied downstream by the
  * flag merge), these must always resolve to a concrete number when a file is

@@ -24,6 +24,9 @@ const DEEP_REGIONS = new Set<RuleScope>([
 /** Deep rules shipped so far (grows as new deep rules land). */
 const EXPECTED_DEEP_IDS = new Set([
   'BILLING_MODE_NOT_MIGRATED',
+  'TRIAL_WITHOUT_PAYMENT_COLLECTION',
+  'SUBSCRIPTIONS_PAST_DUE_ACCUMULATING',
+  'SUBSCRIPTION_COLLECTION_PAUSED',
   'METER_ERROR_NOT_MONITORED',
   'HIGH_PERCENT_COUPON',
   'HIGH_AMOUNT_COUPON',
@@ -41,7 +44,9 @@ const DROPPED_IDS = [
   'WEBHOOK_HIGH_FAILURE_RATE',
   'WEBHOOK_NO_RETRY_EVIDENCE',
   'SMART_RETRIES_DISABLED',
-  'TRIAL_WITHOUT_PAYMENT_COLLECTION',
+  // TRIAL_WITHOUT_PAYMENT_COLLECTION is NOT here: the catalog re-grounding pass
+  // corrected the drop verdict (the setting is readable) and promoted it — it now
+  // lives in EXPECTED_DEEP_IDS above.
   'SUBSCRIPTION_DEFAULT_INCOMPLETE',
   'COUPON_FOREVER_ON_ALL_PRICES',
   'API_VERSION_NOT_PINNED',
@@ -49,6 +54,10 @@ const DROPPED_IDS = [
   'NO_RECEIPT_EMAIL',
   'INVOICE_FOOTER_EMPTY',
   'CUSTOMER_DEFAULT_CURRENCY_MISSING',
+  // Residuals that were tracked only in COVERAGE prose until v0.3 landed them in
+  // the registry proper — the drift class Check D now guards against.
+  'STRIPE_VERSION_ECHO',
+  'INVOICE_WINDOW_NOT_USED',
   // RADAR_SETUP_INTENTS_NOT_ENABLED is a PERMANENT drop (verify-gate DROPPED,
   // docs/verify-gates/RADAR_SETUP_INTENTS.md + src/rules/dropped.ts).
   'RADAR_SETUP_INTENTS_NOT_ENABLED',
@@ -120,6 +129,9 @@ describe('catalog-invariants — ALL_RULES contract', () => {
       ...findingsFor('test/fixtures/snapshots/edge@2026-06-24.dahlia.json').map((f) => f.ruleId),
       // Deep trigger fixtures — one per built deep rule.
       ...findingsFor('test/fixtures/snapshots/classic-billing-mode@2026-06-24.dahlia.json').map((f) => f.ruleId),
+      ...findingsFor('test/fixtures/snapshots/trial-missing-payment-method@2026-06-24.dahlia.json').map((f) => f.ruleId),
+      ...findingsFor('test/fixtures/snapshots/subscription-collection-paused@2026-06-24.dahlia.json').map((f) => f.ruleId),
+      ...findingsFor('test/fixtures/snapshots/subscriptions-past-due@2026-06-24.dahlia.json').map((f) => f.ruleId),
       ...findingsFor('test/fixtures/snapshots/meters-no-thin-destination@2026-06-24.dahlia.json').map((f) => f.ruleId),
       ...findingsFor('test/fixtures/snapshots/high-percent-coupon@2026-06-24.dahlia.json').map((f) => f.ruleId),
       ...findingsFor('test/fixtures/snapshots/high-amount-coupon@2026-06-24.dahlia.json').map((f) => f.ruleId),
@@ -135,6 +147,9 @@ describe('catalog-invariants — ALL_RULES contract', () => {
       ...findingsFor('test/fixtures/snapshots/all-issues@2026-06-24.dahlia.json'),
       ...findingsFor('test/fixtures/snapshots/edge@2026-06-24.dahlia.json'),
       ...findingsFor('test/fixtures/snapshots/classic-billing-mode@2026-06-24.dahlia.json'),
+      ...findingsFor('test/fixtures/snapshots/trial-missing-payment-method@2026-06-24.dahlia.json'),
+      ...findingsFor('test/fixtures/snapshots/subscription-collection-paused@2026-06-24.dahlia.json'),
+      ...findingsFor('test/fixtures/snapshots/subscriptions-past-due@2026-06-24.dahlia.json'),
       ...findingsFor('test/fixtures/snapshots/meters-no-thin-destination@2026-06-24.dahlia.json'),
       ...findingsFor('test/fixtures/snapshots/high-percent-coupon@2026-06-24.dahlia.json'),
       ...findingsFor('test/fixtures/snapshots/high-amount-coupon@2026-06-24.dahlia.json'),

@@ -119,6 +119,10 @@ describe('deep fetcher — {deep: true} fan-out', () => {
       total: 2,
       byStatus: { active: 1, trialing: 1 },
       byBillingMode: { classic: 1, flexible: 1 },
+      // The trialing stub carries no trial_settings → bucketed as the
+      // non-at-risk 'create_invoice'; the active one is not counted at all.
+      byTrialEndBehavior: { create_invoice: 1 },
+      pausedCollectionCount: 0,
     })
     expect(snap.meters).toEqual([
       { id: 'mtr_1', displayName: 'API calls', status: 'active', eventName: 'api_call' },
@@ -140,11 +144,33 @@ describe('deep fetcher — {deep: true} fan-out', () => {
         currency: null,
         duration: 'forever',
         valid: true,
+        // The stub COUPON has no applies_to property at all — the absent case,
+        // which must project to null exactly like an explicit null.
+        appliesToProducts: null,
       },
     ])
     for (const scope of ['subscriptions', 'meters', 'event_destinations', 'coupons'] as const) {
       expect(snap.scopeProbe).toContainEqual({ scope, granted: true })
     }
+  })
+
+  it('projects applies_to.products, treating an explicit null the same as absent', async () => {
+    // The three shapes the API can return. `applies_to` is an OPTIONAL plain
+    // object, so no expand slot is spent — a scoped coupon carries its product
+    // list inline on the list response.
+    const { stripe } = makeStripe({
+      coupons: list([
+        { ...COUPON, id: 'co_scoped', applies_to: { products: ['prod_a', 'prod_b'] } },
+        { ...COUPON, id: 'co_explicit_null', applies_to: null },
+        { ...COUPON, id: 'co_absent' },
+      ]),
+    })
+    const snap = await fetch(stripe, { deep: true })
+    expect(snap.coupons?.map((c) => [c.id, c.appliesToProducts])).toEqual([
+      ['co_scoped', ['prod_a', 'prod_b']],
+      ['co_explicit_null', null],
+      ['co_absent', null],
+    ])
   })
 
   it('never fetches radar: no radarSettings, no scopeProbe entry (gate DROPPED)', async () => {
@@ -193,8 +219,73 @@ describe('deep fetcher — {deep: true} fan-out', () => {
   it('a granted-but-empty region is [] / {total: 0}, distinct from denied null', async () => {
     const { stripe } = makeStripe({ subscriptions: list([]), meters: list([]) })
     const snap = await fetch(stripe, { deep: true })
-    expect(snap.subscriptionSummary).toEqual({ total: 0, byStatus: {}, byBillingMode: {} })
+    expect(snap.subscriptionSummary).toEqual({
+      total: 0,
+      byStatus: {},
+      byBillingMode: {},
+      byTrialEndBehavior: {},
+      pausedCollectionCount: 0,
+    })
     expect(snap.meters).toEqual([])
+  })
+
+  it('byTrialEndBehavior buckets TRIALING subscriptions only, defaulting a null trial_settings', async () => {
+    // Four subscriptions: one trialing/cancel, one trialing/pause, one trialing
+    // with NO trial_settings (→ the non-at-risk create_invoice bucket), and one
+    // ACTIVE subscription that still carries trial_settings from a past trial —
+    // it must not be counted, because only a trial that is still running can end
+    // without a payment method.
+    const trialing = (id: string, behavior: string | null) => ({
+      id,
+      status: 'trialing',
+      billing_mode: { type: 'flexible' },
+      trial_settings: behavior ? { end_behavior: { missing_payment_method: behavior } } : null,
+    })
+    const { stripe } = makeStripe({
+      subscriptions: list([
+        trialing('sub_cancel', 'cancel'),
+        trialing('sub_pause', 'pause'),
+        trialing('sub_unset', null),
+        {
+          id: 'sub_converted',
+          status: 'active',
+          billing_mode: { type: 'flexible' },
+          trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
+        },
+      ]),
+    })
+    const snap = await fetch(stripe, { deep: true })
+    expect(snap.subscriptionSummary?.byTrialEndBehavior).toEqual({
+      cancel: 1,
+      pause: 1,
+      create_invoice: 1,
+    })
+    expect(snap.subscriptionSummary?.byStatus).toEqual({ trialing: 3, active: 1 })
+  })
+
+  it('pausedCollectionCount counts non-null pause_collection, whatever the status says', async () => {
+    // The signal Stripe deliberately does NOT reflect in `status`: both paused
+    // subscriptions below still report 'active', so byStatus can never show them.
+    const { stripe } = makeStripe({
+      subscriptions: list([
+        {
+          id: 'sub_paused_void',
+          status: 'active',
+          billing_mode: { type: 'flexible' },
+          pause_collection: { behavior: 'void', resumes_at: null },
+        },
+        {
+          id: 'sub_paused_draft',
+          status: 'active',
+          billing_mode: { type: 'flexible' },
+          pause_collection: { behavior: 'keep_as_draft', resumes_at: 1780000000 },
+        },
+        { id: 'sub_normal', status: 'active', billing_mode: { type: 'flexible' } },
+      ]),
+    })
+    const snap = await fetch(stripe, { deep: true })
+    expect(snap.subscriptionSummary?.pausedCollectionCount).toBe(2)
+    expect(snap.subscriptionSummary?.byStatus).toEqual({ active: 3 })
   })
 
   it('propagates a genuine non-permission deep failure (after all regions settle)', async () => {

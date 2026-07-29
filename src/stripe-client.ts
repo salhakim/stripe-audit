@@ -77,8 +77,8 @@ function testBaseOverride(): { host: string; port: number; protocol: 'http' | 'h
  * it doesn't need to, so we opt out and keep the client's footprint to the reads
  * the audit actually performs.
  *
- * `opts.maxNetworkRetries` / `opts.timeout` are the C18 config knobs threaded in
- * by the CLI. Each falls back to its {@link ./config/defaults} constant on
+ * `opts.maxNetworkRetries` / `opts.timeout` are the config-file operational knobs
+ * threaded in by the CLI. Each falls back to its {@link ./config/defaults} constant on
  * `undefined` (no config file, or a config that omits the knob), so a config-free
  * call is byte-unchanged. A `0` retry count is honored (it disables SDK retries)
  * — `??` substitutes only on `undefined`, never on a valid `0`.

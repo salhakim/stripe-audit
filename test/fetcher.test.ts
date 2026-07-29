@@ -283,7 +283,7 @@ describe('fetchAccountSnapshot — list truncation signal', () => {
   })
 })
 
-describe('fetchAccountSnapshot — maxListItems knob (C18)', () => {
+describe('fetchAccountSnapshot — maxListItems config knob', () => {
   it('bounds a list fetch to the configured cap (5000) and flags overflow', async () => {
     // A catalog one larger than the configured cap must truncate at the cap.
     const overflowing = Array.from({ length: 5001 }, (_, i) => ({

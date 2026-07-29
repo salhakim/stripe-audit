@@ -1,6 +1,6 @@
 /**
  * stripe-audit — single source of truth for the operational constants exposed as
- * `stripe-audit.config.json` knobs (C18).
+ * `stripe-audit.config.json` knobs.
  *
  * The zod schema's `.default(...)` values AND the runtime modules' own fallbacks
  * (stripe-client, fetcher) BOTH import from here. So a config that OMITS a knob

@@ -85,6 +85,8 @@ describe('stripeAccountSnapshotSchema', () => {
         total: 3,
         byStatus: { active: 2, canceled: 1 },
         byBillingMode: { classic: 1, flexible: 2 },
+        byTrialEndBehavior: {},
+        pausedCollectionCount: 0,
       },
       meters: [{ id: 'mtr_1', displayName: 'API calls', status: 'active', eventName: 'api_call' }],
       thinEventDestinations: [{ id: 'ed_1', name: 'sink', status: 'enabled', enabledEvents: ['*'] }],
@@ -98,6 +100,7 @@ describe('stripeAccountSnapshotSchema', () => {
           currency: null,
           duration: 'forever',
           valid: true,
+          appliesToProducts: null,
         },
       ],
     }

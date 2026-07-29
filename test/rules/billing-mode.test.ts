@@ -42,7 +42,13 @@ function snapWith(summary: SubscriptionSummary | null): StripeAccountSnapshot {
 describe('BILLING_MODE_NOT_MIGRATED', () => {
   it('fires ONE medium finding when any subscription is classic (mixed fleet)', () => {
     const findings = BILLING_MODE_NOT_MIGRATED.check(
-      snapWith({ total: 5, byStatus: { active: 5 }, byBillingMode: { classic: 2, flexible: 3 } }),
+      snapWith({
+        total: 5,
+        byStatus: { active: 5 },
+        byBillingMode: { classic: 2, flexible: 3 },
+        byTrialEndBehavior: {},
+        pausedCollectionCount: 0,
+      }),
     )
     expect(findings).toHaveLength(1)
     const finding = findings[0]
@@ -57,7 +63,13 @@ describe('BILLING_MODE_NOT_MIGRATED', () => {
   it('is clean when every subscription is flexible', () => {
     expect(
       BILLING_MODE_NOT_MIGRATED.check(
-        snapWith({ total: 3, byStatus: { active: 3 }, byBillingMode: { flexible: 3 } }),
+        snapWith({
+          total: 3,
+          byStatus: { active: 3 },
+          byBillingMode: { flexible: 3 },
+          byTrialEndBehavior: {},
+          pausedCollectionCount: 0,
+        }),
       ),
     ).toEqual([])
   })
@@ -68,7 +80,15 @@ describe('BILLING_MODE_NOT_MIGRATED', () => {
 
   it('is clean on an empty fleet (zero subscriptions)', () => {
     expect(
-      BILLING_MODE_NOT_MIGRATED.check(snapWith({ total: 0, byStatus: {}, byBillingMode: {} })),
+      BILLING_MODE_NOT_MIGRATED.check(
+        snapWith({
+          total: 0,
+          byStatus: {},
+          byBillingMode: {},
+          byTrialEndBehavior: {},
+          pausedCollectionCount: 0,
+        }),
+      ),
     ).toEqual([])
   })
 

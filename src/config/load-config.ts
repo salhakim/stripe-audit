@@ -265,7 +265,7 @@ function describeConfigIssues(error: ZodError): string {
       return `unknown key(s) ${keys} at ${where}${pluginHint}`
     }
     if (issue.code === 'too_small') {
-      // Array `.min(1)` (severity/category) vs numeric `.min()` (the C18 knobs)
+      // Array `.min(1)` (severity/category) vs numeric `.min()` (the operational knobs)
       // both surface as too_small — branch on origin so a numeric knob never gets
       // the list-specific "empty filter" copy. Only the schema bound is named,
       // never the offending value (S1).

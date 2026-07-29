@@ -165,6 +165,45 @@ describe('formatRuleListJson (machine-readable registry — the docs-drift inter
       expect(typeof d.reason).toBe('string')
       expect(typeof d.decidedIn).toBe('string')
       expect(typeof d.evidence).toBe('string')
+      expect(['api-gap', 'scope-gated', 'low-value']).toContain(d.category)
+    }
+  })
+
+  it('carries revisitCondition only where one exists (no undefined keys)', () => {
+    const parsed = JSON.parse(cli.formatRuleListJson())
+    for (const d of parsed.dropped) {
+      const source = DROPPED_RULES.find((x) => x.id === d.id)
+      expect(Object.hasOwn(d, 'revisitCondition')).toBe(source?.revisitCondition !== undefined)
+    }
+    expect(parsed.dropped.some((d: { revisitCondition?: string }) => d.revisitCondition)).toBe(true)
+  })
+
+  it('every dropped reason is backed by a cached doc or a verify-gate verdict', () => {
+    // A drop reason is printed to users by --list-rules, so it carries the same
+    // evidence burden as a finding. Generic "see the audit" strings are what let a
+    // false claim (TRIAL_WITHOUT_PAYMENT_COLLECTION) ship for a month.
+    for (const d of DROPPED_RULES) {
+      expect(d.evidence).toMatch(/^(learnings\/stack-documentation\/|docs\/)/)
+      expect(d.evidence).toMatch(/\.md$/)
+    }
+  })
+
+  it('no dropped entry claims unreadable what the cached docs show as readable', () => {
+    const stale = [/not readable via the API/i, /no coupon-to-price linkage/i]
+    for (const d of DROPPED_RULES) {
+      for (const pattern of stale) {
+        expect(d.reason).not.toMatch(pattern)
+      }
+    }
+  })
+
+  it('renders the dropped category column in the human table', () => {
+    const out = cli.formatRuleList()
+    for (const d of DROPPED_RULES) {
+      const row = out.split('\n').find((l) => l.startsWith(d.id))
+      expect(row).toBeDefined()
+      expect(row).toContain(d.category)
+      expect(row).toContain(d.reason)
     }
   })
 

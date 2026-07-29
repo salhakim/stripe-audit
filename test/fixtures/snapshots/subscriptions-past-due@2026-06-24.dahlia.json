@@ -60,12 +60,14 @@
     "defaultTaxBehavior": "exclusive"
   },
   "subscriptionSummary": {
-    "total": 2,
+    "total": 9,
     "byStatus": {
-      "active": 2
+      "active": 6,
+      "past_due": 2,
+      "unpaid": 1
     },
     "byBillingMode": {
-      "flexible": 2
+      "flexible": 9
     },
     "byTrialEndBehavior": {},
     "pausedCollectionCount": 0
@@ -99,19 +101,6 @@
       "duration": "once",
       "valid": true,
       "appliesToProducts": null
-    },
-    {
-      "id": "co_eternal",
-      "name": "ETERNAL20",
-      "percentOff": 20.0,
-      "amountOff": null,
-      "currency": null,
-      "duration": "forever",
-      "valid": true,
-      "appliesToProducts": [
-        "prod_pro",
-        "prod_team"
-      ]
     }
   ],
   "scopeProbe": [
@@ -154,14 +143,14 @@
   ],
   "truncated": [],
   "_meta": {
-    "description": "Deep account with a still-valid forever-duration coupon — triggers FOREVER_COUPON_STILL_VALID only.",
+    "description": "Deep account carrying failed-payment subscriptions - 2 past_due + 1 unpaid out of 9. Triggers SUBSCRIPTIONS_PAST_DUE_ACCUMULATING only (no trialing subscriptions, fleet all-flexible, meters monitored, coupon bounded).",
     "capturedAt": "2026-06-24T00:00:00Z",
     "capturedApiVersion": "2026-06-24.dahlia",
     "expectedRules": [
-      "FOREVER_COUPON_STILL_VALID"
+      "SUBSCRIPTIONS_PAST_DUE_ACCUMULATING"
     ],
     "expectedSeverities": [
-      "medium"
+      "low"
     ]
   }
 }

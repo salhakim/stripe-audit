@@ -36,7 +36,7 @@ the stable page and tells you exactly what to click).
 
 | Dashboard permission (Read) | Snapshot region | Consumed by |
 |---|---|---|
-| Subscriptions | `subscriptions` (aggregate counts only — no per-customer data retained) | BILLING_MODE_NOT_MIGRATED |
+| Subscriptions | `subscriptions` (aggregate counts only — no per-customer data retained) | BILLING_MODE_NOT_MIGRATED, TRIAL_WITHOUT_PAYMENT_COLLECTION, SUBSCRIPTIONS_PAST_DUE_ACCUMULATING, SUBSCRIPTION_COLLECTION_PAUSED |
 | Billing Meters | `meters` | METER_ERROR_NOT_MONITORED |
 | Event Destinations | `event_destinations` | METER_ERROR_NOT_MONITORED |
 | Coupons | `coupons` | HIGH_PERCENT_COUPON, HIGH_AMOUNT_COUPON, FOREVER_COUPON_STILL_VALID |

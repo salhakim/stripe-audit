@@ -58,7 +58,7 @@ export function applyBound<T>(items: T[], cap: number): { items: T[]; truncated:
 export interface FetchOptions {
   deep?: boolean
   /**
-   * Per-list item cap (C18 config knob). `undefined` → {@link MAX_LIST_ITEMS}
+   * Per-list item cap (config-file knob). `undefined` → {@link MAX_LIST_ITEMS}
    * (the byte-unchanged default). The config schema bounds it to
    * `1..LIST_ITEMS_CEILING`, so `cap + 1` is always a legal SDK autopage limit.
    */
@@ -256,13 +256,33 @@ function mapTax(settings: Stripe.Tax.Settings | null): SnapshotTaxSettings | nul
 function mapSubscriptionSummary(subs: Stripe.Subscription[]): SubscriptionSummary {
   const byStatus: Record<string, number> = {}
   const byBillingMode: Record<string, number> = {}
+  const byTrialEndBehavior: Record<string, number> = {}
+  let pausedCollectionCount = 0
   for (const sub of subs) {
     byStatus[sub.status] = (byStatus[sub.status] ?? 0) + 1
     // billing_mode.type: 'classic' | 'flexible' (docs/verify-gates/BILLING_MODE.md).
     const mode = sub.billing_mode?.type ?? 'unknown'
     byBillingMode[mode] = (byBillingMode[mode] ?? 0) + 1
+    // Only TRIALING subscriptions can have a trial end without a payment method,
+    // so the aggregate is scoped to them (docs/verify-gates/TRIAL_END_BEHAVIOR.md).
+    // `trial_settings` is nullable on the Subscription object; an unset one is
+    // bucketed as 'create_invoice' — the non-at-risk behavior — so a missing
+    // setting never manufactures a finding. `end_behavior` is optional-chained
+    // for the same reason `billing_mode` above is: the SDK types both as
+    // required, but a partial/older-version response must degrade one aggregate,
+    // never throw out of the mapper and abort the whole audit.
+    if (sub.status === 'trialing') {
+      const endBehavior =
+        sub.trial_settings?.end_behavior?.missing_payment_method ?? 'create_invoice'
+      byTrialEndBehavior[endBehavior] = (byTrialEndBehavior[endBehavior] ?? 0) + 1
+    }
+    // pause_collection is nullable and NOT reflected in `status` — the SDK's own
+    // note says the status "will be unchanged and will not be updated to
+    // `paused`" — so this count is the only way the audit can see a paused
+    // subscription (docs/verify-gates/PAUSE_COLLECTION.md).
+    if (sub.pause_collection) pausedCollectionCount += 1
   }
-  return { total: subs.length, byStatus, byBillingMode }
+  return { total: subs.length, byStatus, byBillingMode, byTrialEndBehavior, pausedCollectionCount }
 }
 
 function mapMeter(meter: Stripe.Billing.Meter): SnapshotMeter {
@@ -292,6 +312,12 @@ function mapCoupon(coupon: Stripe.Coupon): SnapshotCoupon {
     currency: coupon.currency ?? null,
     duration: coupon.duration,
     valid: coupon.valid,
+    // `applies_to` is an OPTIONAL plain object on the Coupon — never an ID
+    // reference — so absent and null both mean "unscoped" and no `expand` slot is
+    // spent on it (the API docs label it "expandable", which is misleading here;
+    // verified against the pinned SDK, Coupons.d.ts:41,116-121). Expand slots on a
+    // list call are capped, so spending one for nothing is a real cost.
+    appliesToProducts: coupon.applies_to?.products ?? null,
   }
 }
 
@@ -315,7 +341,7 @@ export async function fetchAccountSnapshot(
   // dependence on charges_enabled) — see key.ts (key-exposure threat model).
   const accountMode = detectKeyMode(key).mode
 
-  // Effective per-run list cap: the C18 config knob when supplied, else the
+  // Effective per-run list cap: the config-file knob when supplied, else the
   // byte-unchanged default. The config schema bounds it to 1..LIST_ITEMS_CEILING
   // (= SDK_AUTOPAGE_MAX - 1), so cap + 1 is always ≤ the SDK autopage ceiling.
   const cap = options?.maxListItems ?? MAX_LIST_ITEMS

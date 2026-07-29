@@ -108,6 +108,14 @@ const subscriptionSummarySchema = z.object({
   total: z.number(),
   byStatus: z.record(z.string(), z.number()),
   byBillingMode: z.record(z.string(), z.number()),
+  // REQUIRED, not .optional(): an optional field would let a future fetcher
+  // silently omit the aggregate and TRIAL_WITHOUT_PAYMENT_COLLECTION would
+  // silently never fire — the exact failure the mirror-schema discipline exists
+  // to prevent. Every deep fixture carries it.
+  byTrialEndBehavior: z.record(z.string(), z.number()),
+  // REQUIRED for the same reason as byTrialEndBehavior: an omitted aggregate
+  // must fail validation, not silently disable SUBSCRIPTION_COLLECTION_PAUSED.
+  pausedCollectionCount: z.number(),
 })
 
 const snapshotMeterSchema = z.object({
@@ -136,6 +144,7 @@ const snapshotCouponSchema = z.object({
   currency: z.string().nullable(),
   duration: z.string(),
   valid: z.boolean(),
+  appliesToProducts: z.array(z.string()).nullable(),
 })
 
 /** The single validation chokepoint for a snapshot — mirrors StripeAccountSnapshot. */

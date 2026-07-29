@@ -177,6 +177,24 @@ export interface SubscriptionSummary {
    * classic?", never the per-subscription list, so large fleets stay bounded.
    */
   byBillingMode: Record<string, number>
+  /**
+   * Count of `status: 'trialing'` subscriptions per
+   * `trial_settings.end_behavior.missing_payment_method` — 'cancel' |
+   * 'create_invoice' | 'pause' (verify-gate verdict,
+   * docs/verify-gates/TRIAL_END_BEHAVIOR.md). A trialing subscription whose
+   * `trial_settings` is null is bucketed as `create_invoice`, so an unset
+   * setting can never manufacture an at-risk count. Same bounded aggregate
+   * shape as {@link byBillingMode}: counts only, never the subscription list.
+   */
+  byTrialEndBehavior: Record<string, number>
+  /**
+   * How many subscriptions carry a non-null `pause_collection` (verify-gate
+   * verdict, docs/verify-gates/PAUSE_COLLECTION.md). A count rather than a
+   * status bucket precisely BECAUSE Stripe leaves the status unchanged while
+   * collection is paused — a paused subscription still reads `active`, so
+   * {@link byStatus} can never surface it.
+   */
+  pausedCollectionCount: number
 }
 
 /** v0.2 — a Billing Meter (drives METER_ERROR_NOT_MONITORED). */
@@ -216,6 +234,16 @@ export interface SnapshotCoupon {
   /** `duration` enum: 'forever' | 'once' | 'repeating'. */
   duration: string
   valid: boolean
+  /**
+   * `applies_to.products` — the product IDs this coupon is restricted to, or
+   * null when it is unscoped (i.e. applies to everything). Stripe's linkage is
+   * product-level; there is NO coupon→price linkage, which is why
+   * `COUPON_FOREVER_ON_ALL_PRICES` stays a permanent non-goal. `applies_to` is an
+   * optional plain object on the Coupon (never an ID reference), so both an
+   * absent property and an explicit null mean "unscoped" and NO `expand` slot is
+   * spent fetching it.
+   */
+  appliesToProducts: string[] | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -23,7 +23,7 @@ import { EXIT_OK, EXIT_FINDINGS, EXIT_CONFIG } from '../../src/exit-codes'
 import { MAX_LIST_ITEMS, REQUEST_TIMEOUT_MS, MAX_NETWORK_RETRIES } from '../../src/config/defaults'
 
 /**
- * The three C18 operational knobs carry `.default(<constant>)` in the schema, so
+ * The three operational knobs carry `.default(<constant>)` in the schema, so
  * EVERY loaded config's `settings` gains them (byte-unchanged runtime values).
  * A file that omits them still resolves to these concrete numbers.
  */

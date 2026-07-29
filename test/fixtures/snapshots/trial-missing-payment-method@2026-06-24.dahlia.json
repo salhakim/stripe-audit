@@ -60,14 +60,18 @@
     "defaultTaxBehavior": "exclusive"
   },
   "subscriptionSummary": {
-    "total": 2,
+    "total": 7,
     "byStatus": {
-      "active": 2
+      "active": 4,
+      "trialing": 3
     },
     "byBillingMode": {
-      "flexible": 2
+      "flexible": 7
     },
-    "byTrialEndBehavior": {},
+    "byTrialEndBehavior": {
+      "cancel": 2,
+      "create_invoice": 1
+    },
     "pausedCollectionCount": 0
   },
   "meters": [
@@ -99,19 +103,6 @@
       "duration": "once",
       "valid": true,
       "appliesToProducts": null
-    },
-    {
-      "id": "co_eternal",
-      "name": "ETERNAL20",
-      "percentOff": 20.0,
-      "amountOff": null,
-      "currency": null,
-      "duration": "forever",
-      "valid": true,
-      "appliesToProducts": [
-        "prod_pro",
-        "prod_team"
-      ]
     }
   ],
   "scopeProbe": [
@@ -154,11 +145,11 @@
   ],
   "truncated": [],
   "_meta": {
-    "description": "Deep account with a still-valid forever-duration coupon — triggers FOREVER_COUPON_STILL_VALID only.",
+    "description": "Deep account whose trials end without collecting payment — 2 of 3 trialing subscriptions carry trial_settings.end_behavior.missing_payment_method 'cancel', the third the healthy 'create_invoice'. Triggers TRIAL_WITHOUT_PAYMENT_COLLECTION only (fleet is all-flexible, meters are monitored, the coupon is a bounded 'once').",
     "capturedAt": "2026-06-24T00:00:00Z",
     "capturedApiVersion": "2026-06-24.dahlia",
     "expectedRules": [
-      "FOREVER_COUPON_STILL_VALID"
+      "TRIAL_WITHOUT_PAYMENT_COLLECTION"
     ],
     "expectedSeverities": [
       "medium"

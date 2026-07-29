@@ -31,7 +31,7 @@ describe('createStripeClient', () => {
     expect(client.getTelemetryEnabled()).toBe(false)
   })
 
-  // ── C18 config knobs: maxNetworkRetries / timeout overrides ──
+  // ── config-file knobs: maxNetworkRetries / timeout overrides ──
   it('applies the built-in defaults when no overrides are passed (byte-unchanged)', () => {
     const client = createStripeClient(TEST_KEY)
     expect(client.getMaxNetworkRetries()).toBe(2)

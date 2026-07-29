@@ -19,61 +19,66 @@ shipped registry — the exact list below is the output of
 `npx stripe-audit --list-rules`:
 
 ```text
-ID                                  SCOPE  CATEGORY       SEVERITY
-WEBHOOK_SELECT_ALL                  base   webhooks       critical
-WEBHOOK_ENDPOINT_DISABLED           base   webhooks       high
-WEBHOOK_TOO_MANY_ENDPOINTS          base   webhooks       medium
-WEBHOOK_DUPLICATE_URL               base   webhooks       medium
-WEBHOOK_INSECURE_URL                base   webhooks       high
-WEBHOOK_SELECTION_REQUIRED_MISSED   base   webhooks       high
-WEBHOOK_TEST_ENDPOINT_IN_LIVE       base   webhooks       high
-WEBHOOK_API_VERSION_MISMATCH        base   webhooks       medium
-NO_CUSTOMER_PORTAL                  base   billing        high
-PORTAL_PAYMENT_UPDATE_DISABLED      base   billing        high
-PORTAL_NO_CANCEL_FLOW               base   billing        medium
-PORTAL_NO_INVOICE_HISTORY           base   billing        medium
-PORTAL_NO_CUSTOMER_UPDATE           base   billing        medium
-PORTAL_LOGIN_PAGE_DISABLED          base   billing        low
-PORTAL_PRORATION_NONE_ON_UPDATE     base   billing        medium
-PRICE_NO_LOOKUP_KEY                 base   pricing        low
-ALL_PRICES_INACTIVE                 base   pricing        high
-PRICE_ZERO_AMOUNT                   base   pricing        medium
-DEFAULT_PRICE_MISSING_OR_INACTIVE   base   pricing        medium
-MULTIPLE_ACTIVE_PRICES_PER_PRODUCT  base   pricing        low
-PRICE_TAX_BEHAVIOR_UNSPECIFIED      base   pricing        medium
-CUSTOM_UNIT_AMOUNT_NO_MINIMUM       base   pricing        medium
-CROSS_CURRENCY_PRICES               base   pricing        low
-TAX_NOT_ENABLED                     base   configuration  high
-DEFAULT_TAX_BEHAVIOR_UNSET          base   configuration  medium
-TAX_SETTINGS_PENDING                base   configuration  medium
-UNBRANDED_RECEIPTS                  base   configuration  low
-DEFAULT_ACCOUNT_TAX_IDS_MISSING     base   configuration  low
-STATEMENT_DESCRIPTOR_MISSING        base   configuration  medium
-EVENT_DESTINATIONS_NOT_AUDITED      base   configuration  info
-TEST_KEY_DETECTED_LIVE              base   security       critical
-LIVE_KEY_DETECTED_TEST              base   security       high
-RESTRICTED_KEY_PERMISSION_PROBE     base   security       info
-ACCOUNT_CHARGES_DISABLED            base   security       high
-ACCOUNT_REQUIREMENTS_DUE            base   security       high
-BILLING_MODE_NOT_MIGRATED           deep   billing        medium
-METER_ERROR_NOT_MONITORED           deep   billing        high
-HIGH_PERCENT_COUPON                 deep   pricing        medium
-HIGH_AMOUNT_COUPON                  deep   pricing        medium
-FOREVER_COUPON_STILL_VALID          deep   pricing        medium
+ID                                   SCOPE  CATEGORY       SEVERITY
+WEBHOOK_SELECT_ALL                   base   webhooks       critical
+WEBHOOK_ENDPOINT_DISABLED            base   webhooks       high
+WEBHOOK_TOO_MANY_ENDPOINTS           base   webhooks       medium
+WEBHOOK_DUPLICATE_URL                base   webhooks       medium
+WEBHOOK_INSECURE_URL                 base   webhooks       high
+WEBHOOK_SELECTION_REQUIRED_MISSED    base   webhooks       high
+WEBHOOK_TEST_ENDPOINT_IN_LIVE        base   webhooks       high
+WEBHOOK_API_VERSION_MISMATCH         base   webhooks       medium
+NO_CUSTOMER_PORTAL                   base   billing        high
+PORTAL_PAYMENT_UPDATE_DISABLED       base   billing        high
+PORTAL_NO_CANCEL_FLOW                base   billing        medium
+PORTAL_NO_INVOICE_HISTORY            base   billing        medium
+PORTAL_NO_CUSTOMER_UPDATE            base   billing        medium
+PORTAL_LOGIN_PAGE_DISABLED           base   billing        low
+PORTAL_PRORATION_NONE_ON_UPDATE      base   billing        medium
+PRICE_NO_LOOKUP_KEY                  base   pricing        low
+ALL_PRICES_INACTIVE                  base   pricing        high
+PRICE_ZERO_AMOUNT                    base   pricing        medium
+DEFAULT_PRICE_MISSING_OR_INACTIVE    base   pricing        medium
+MULTIPLE_ACTIVE_PRICES_PER_PRODUCT   base   pricing        low
+PRICE_TAX_BEHAVIOR_UNSPECIFIED       base   pricing        medium
+CUSTOM_UNIT_AMOUNT_NO_MINIMUM        base   pricing        medium
+CROSS_CURRENCY_PRICES                base   pricing        low
+TAX_NOT_ENABLED                      base   configuration  high
+DEFAULT_TAX_BEHAVIOR_UNSET           base   configuration  medium
+TAX_SETTINGS_PENDING                 base   configuration  medium
+UNBRANDED_RECEIPTS                   base   configuration  low
+DEFAULT_ACCOUNT_TAX_IDS_MISSING      base   configuration  low
+STATEMENT_DESCRIPTOR_MISSING         base   configuration  medium
+EVENT_DESTINATIONS_NOT_AUDITED       base   configuration  info
+TEST_KEY_DETECTED_LIVE               base   security       critical
+LIVE_KEY_DETECTED_TEST               base   security       high
+RESTRICTED_KEY_PERMISSION_PROBE      base   security       info
+ACCOUNT_CHARGES_DISABLED             base   security       high
+ACCOUNT_REQUIREMENTS_DUE             base   security       high
+BILLING_MODE_NOT_MIGRATED            deep   billing        medium
+TRIAL_WITHOUT_PAYMENT_COLLECTION     deep   billing        medium
+SUBSCRIPTIONS_PAST_DUE_ACCUMULATING  deep   billing        low
+SUBSCRIPTION_COLLECTION_PAUSED       deep   billing        medium
+METER_ERROR_NOT_MONITORED            deep   billing        high
+HIGH_PERCENT_COUPON                  deep   pricing        medium
+HIGH_AMOUNT_COUPON                   deep   pricing        medium
+FOREVER_COUPON_STILL_VALID           deep   pricing        medium
 
 DROPPED (consciously not built — evidence in the repo per entry)
-RADAR_SETUP_INTENTS_NOT_ENABLED     Radar SetupIntent screening is Dashboard-only / unreadable via restricted key
-WEBHOOK_NO_SIGNING_SECRET           Signing secret is only returned at endpoint creation; the API exposes no presence flag
-WEBHOOK_HIGH_FAILURE_RATE           No delivery metrics in the API (Workbench only); failure-rate fields were phantom
-WEBHOOK_NO_RETRY_EVIDENCE           Restricted keys cannot read request logs, so retry/idempotency evidence is unreachable
-SMART_RETRIES_DISABLED              Smart Retries is Dashboard-only; the subscriptionSettings object was a phantom fetch
-TRIAL_WITHOUT_PAYMENT_COLLECTION    The trial payment-collection setting is not readable via the API
-SUBSCRIPTION_DEFAULT_INCOMPLETE     Not an account-level setting; there is no readable default to audit
-COUPON_FOREVER_ON_ALL_PRICES        No coupon-to-price linkage exists in Stripe’s model (permanent non-goal in every branch)
-API_VERSION_OUTDATED                Account default API version is not directly readable; re-scoped to the lastResponse.apiVersion echo signal instead of built as specced
-API_VERSION_NOT_PINNED              Pinning evidence lives in request logs, which restricted keys cannot read
-NO_RECEIPT_EMAIL                    No API field exposes receipt-email configuration
-INVOICE_FOOTER_EMPTY                The referenced Account invoice-footer fields do not exist (phantom fields)
+RADAR_SETUP_INTENTS_NOT_ENABLED      api-gap      Radar SetupIntent screening is a Dashboard toggle with no API object to read
+WEBHOOK_NO_SIGNING_SECRET            api-gap      The endpoint object carries `secret`, but it is populated only at creation — later reads omit it, so presence cannot be checked
+WEBHOOK_HIGH_FAILURE_RATE            api-gap      No delivery metrics exist on any readable object; the v2 destination reports only status_details.disabled.reason, whose enum has no delivery-failure value
+WEBHOOK_NO_RETRY_EVIDENCE            api-gap      Retry and idempotency evidence lives in request logs, which no restricted key can read
+SMART_RETRIES_DISABLED               api-gap      The retry schedule is configured only in the Dashboard (Billing > Revenue recovery > Retries); no object exposes it
+SUBSCRIPTION_DEFAULT_INCOMPLETE      api-gap      There is no account-level subscription default to audit — the behavior is chosen per subscription at creation
+NO_RECEIPT_EMAIL                     api-gap      account.settings.invoices exposes only default_account_tax_ids and hosted_payment_method_save — no receipt-email configuration
+INVOICE_FOOTER_EMPTY                 api-gap      account.settings.invoices has no footer field; the fields the original spec named do not exist on the object
+API_VERSION_OUTDATED                 api-gap      Starting in v12 stripe-node always sends a Stripe-Version header, so the account's own default version is never observable through this client
+API_VERSION_NOT_PINNED               api-gap      Whether other integrations pin a version is visible only in request logs
+STRIPE_VERSION_ECHO                  low-value    lastResponse.apiVersion only echoes the version this audit itself pinned, so a check on it can never fail
+COUPON_FOREVER_ON_ALL_PRICES         low-value    Coupon scoping is product-level via applies_to.products (there is no price-level linkage), and FOREVER_COUPON_STILL_VALID already reports that blast radius on every forever coupon
+CUSTOMER_DEFAULT_CURRENCY_MISSING    low-value    account.default_currency is a non-nullable string, so it is always present — the condition the rule would flag cannot occur
+INVOICE_WINDOW_NOT_USED              scope-gated  Invoice-level settings are readable, but the audit fetches no invoices region (base: account, webhooks, prices, portal, tax; deep: subscriptions, meters, event destinations, coupons)
 ```
 
 ## Contents
@@ -124,6 +129,9 @@ INVOICE_FOOTER_EMPTY                The referenced Account invoice-footer fields
 | `ACCOUNT_CHARGES_DISABLED` | base | security | high |
 | `ACCOUNT_REQUIREMENTS_DUE` | base | security | high |
 | `BILLING_MODE_NOT_MIGRATED` | deep | billing | medium |
+| `TRIAL_WITHOUT_PAYMENT_COLLECTION` | deep | billing | medium |
+| `SUBSCRIPTIONS_PAST_DUE_ACCUMULATING` | deep | billing | low |
+| `SUBSCRIPTION_COLLECTION_PAUSED` | deep | billing | medium |
 | `METER_ERROR_NOT_MONITORED` | deep | billing | high |
 | `HIGH_PERCENT_COUPON` | deep | pricing | medium |
 | `HIGH_AMOUNT_COUPON` | deep | pricing | medium |
@@ -531,6 +539,54 @@ Subscriptions not migrated to flexible billing mode · `medium` · `deep`
   (one-way change); verify proration behavior on a test subscription first.
 - **Docs:** https://docs.stripe.com/api/subscriptions
 
+### TRIAL_WITHOUT_PAYMENT_COLLECTION
+Trials end without collecting payment · `medium` · `deep`
+
+- **What:** One or more trialing subscriptions have
+  `trial_settings.end_behavior.missing_payment_method` set to `cancel` or
+  `pause`.
+- **Why it matters:** When such a trial ends with no payment method attached,
+  Stripe cancels or pauses the subscription instead of raising an invoice. The
+  conversion is lost silently — there is no failed payment, no dunning, and
+  nothing for revenue recovery to retry.
+- **How to fix:** Set `missing_payment_method` to `create_invoice` so the trial
+  ends with a collectible invoice, or require a payment method up front
+  (Checkout or a SetupIntent at trial signup).
+- **Docs:** https://docs.stripe.com/api/subscriptions
+
+### SUBSCRIPTIONS_PAST_DUE_ACCUMULATING
+Subscriptions accumulating in past_due or unpaid · `low` · `deep`
+
+- **What:** Subscriptions are sitting in `past_due` (an invoice payment failed)
+  or `unpaid` (the retry schedule ran out).
+- **Why it matters:** An unpaid balance is revenue you already earned and have
+  not collected. This is a state, not proof of a misconfiguration — some
+  `past_due` is normal while dunning runs — so the finding is advisory and asks
+  you to verify the settings behind it rather than asserting a fault. The retry
+  policy itself is Dashboard-only and not readable by this audit (see
+  `SMART_RETRIES_DISABLED` under Dropped rules).
+- **How to fix:** In the Dashboard, check Billing → Revenue recovery → Retries:
+  confirm Smart Retries (or a custom schedule) is on, failed-payment emails are
+  enabled, and the end-of-retry behavior matches your intent. Enable customer
+  portal payment-method updates so customers can self-serve a fix.
+- **Docs:** https://docs.stripe.com/billing/revenue-recovery
+
+### SUBSCRIPTION_COLLECTION_PAUSED
+Subscriptions with payment collection paused · `medium` · `deep`
+
+- **What:** Subscriptions carry `pause_collection`, so Stripe is not collecting
+  payment on them.
+- **Why it matters:** This is the one revenue gap no status filter can show you.
+  Stripe leaves the subscription's status unchanged while collection is paused —
+  it never becomes `paused` — so the subscription still reads active in the
+  Dashboard and in this audit's own status counts. A pause set with no
+  `resumes_at` date runs until someone unsets it by hand, which makes a forgotten
+  pause indefinite, silent non-billing.
+- **How to fix:** Review each paused subscription: confirm the pause is still
+  intentional and has a `resumes_at` date rather than running open-ended. Resume
+  by updating the subscription with `pause_collection` unset.
+- **Docs:** https://docs.stripe.com/api/subscriptions
+
 ### METER_ERROR_NOT_MONITORED
 Meter error reports are not monitored · `high` · `deep`
 
@@ -571,7 +627,12 @@ Forever-duration coupon is still valid · `medium` · `deep`
 
 - **What:** A coupon with `duration 'forever'` is still redeemable.
 - **Why it matters:** Once applied it discounts every invoice for that customer
-  indefinitely — each new redemption is a permanent revenue reduction.
+  indefinitely — each new redemption is a permanent revenue reduction. The
+  finding also states the coupon's blast radius from `applies_to.products`:
+  either "applies to ALL products in the catalog" (unscoped, the default) or
+  "scoped to N products". The linkage is product-level only — Stripe has no
+  coupon→price linkage, which is why `COUPON_FOREVER_ON_ALL_PRICES` is a
+  permanent non-goal.
 - **How to fix:** Confirm it's intentional; otherwise delete or bound it, and
   prefer `once`/`repeating` durations for promotions.
 - **Docs:** https://docs.stripe.com/api/coupons
@@ -584,13 +645,31 @@ under a restricted read-only key. The full registry with reasons ships in the
 CLI (`npx stripe-audit --list-rules`, DROPPED section) and in code at
 [`src/rules/dropped.ts`](../src/rules/dropped.ts); highlights:
 
-| Rule | Why it will never ship |
-|---|---|
-| `RADAR_SETUP_INTENTS_NOT_ENABLED` | Radar SetupIntent screening is Dashboard-only / unreadable via restricted key ([verdict](verify-gates/RADAR_SETUP_INTENTS.md)) |
-| `SMART_RETRIES_DISABLED` | Smart Retries is Dashboard-only |
-| `WEBHOOK_HIGH_FAILURE_RATE` | No delivery metrics in the API (Workbench only) |
-| `COUPON_FOREVER_ON_ALL_PRICES` | No coupon→price linkage exists in Stripe's model |
-| …and the rest | `stripe-audit --list-rules` prints the complete registry with reasons |
+Each entry carries a **category** — the lever that would change the verdict, not a
+synonym for "no":
+
+- `api-gap` — the data does not exist in the API under any key. Only a Stripe
+  API change moves it.
+- `scope-gated` — the data is readable but sits in a region this audit does not
+  fetch. Adding the region moves it — a decision we control.
+- `low-value` — readable and in scope, but the rule would not earn its place
+  (redundant with a shipping rule, or the condition cannot occur).
+
+| Rule | Category | Why it is not built |
+|---|---|---|
+| `RADAR_SETUP_INTENTS_NOT_ENABLED` | api-gap | Radar SetupIntent screening is a Dashboard toggle with no API object to read ([verdict](verify-gates/RADAR_SETUP_INTENTS.md)) |
+| `SMART_RETRIES_DISABLED` | api-gap | The retry schedule is configured only in the Dashboard; no object exposes it |
+| `WEBHOOK_HIGH_FAILURE_RATE` | api-gap | No delivery metrics on any readable object — the v2 destination's disabled-reason enum has no delivery-failure value |
+| `COUPON_FOREVER_ON_ALL_PRICES` | low-value | Coupon scoping is product-level via `applies_to.products`; `FOREVER_COUPON_STILL_VALID` already reports that blast radius |
+| `CUSTOMER_DEFAULT_CURRENCY_MISSING` | low-value | `account.default_currency` is non-nullable, so the condition cannot occur |
+| `INVOICE_WINDOW_NOT_USED` | scope-gated | Readable, but the audit fetches no invoices region |
+| …and the rest | — | `stripe-audit --list-rules` prints the complete registry with categories, reasons, and evidence |
+
+> One entry here was wrong for a month: `TRIAL_WITHOUT_PAYMENT_COLLECTION` claimed
+> its setting was "not readable via the API" when the field is a plain enum on an
+> object the audit already fetched. It now **ships** as an active rule. Every
+> remaining reason was re-verified against the cached Stripe schema pages in v0.3,
+> and each entry's `evidence` field points at the specific document that backs it.
 
 ## Related documentation
 

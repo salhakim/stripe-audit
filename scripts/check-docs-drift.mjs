@@ -112,15 +112,27 @@ function checkApiVersion() {
   }
 }
 
-// ── Check C — docs/rules.md rule IDs exactly match `--list-rules --output json` ──
+// ── Checks C + D — every census doc's rule IDs match `--list-rules --output json` ─
 // Promotes the CLI↔docs reconcile (was a one-time smoke check) to a standing
 // gate, using the underscore-required token shape. Consumes the
 // machine-readable `{ active, dropped }` JSON instead of scraping the
 // human table, so layout changes to the human listing can never break this gate.
 // DROPPED rules are part of the reconcile: the transparency promise is that
-// every consciously-dropped rule is documented in rules.md alongside the active set.
+// every consciously-dropped rule is documented alongside the active set.
+//
+// Check C covers docs/rules.md; Check D covers COVERAGE.md — the same reconcile
+// against a second census surface. COVERAGE.md previously had NO rule-ID gate of
+// its own, which is how a stale entry (a rule listed as dropped while the census
+// counted it elsewhere) survived two weeks and a release. One parameterized walk
+// rather than two copies: a third census doc is one array entry.
+const CENSUS_DOCS = [
+  { path: RULES_MD, name: 'docs/rules.md' },
+  { path: join(ROOT, 'COVERAGE.md'), name: 'COVERAGE.md' },
+]
+
 function checkRuleCatalogue() {
-  if (!existsSync(RULES_MD)) return // no catalogue in this project → nothing to reconcile
+  const docs = CENSUS_DOCS.filter((d) => existsSync(d.path))
+  if (docs.length === 0) return // no census doc in this project → nothing to reconcile
   const raw = execFileSync('node', [CLI, '--list-rules', '--output', 'json'], {
     cwd: ROOT,
     encoding: 'utf8',
@@ -137,7 +149,7 @@ function checkRuleCatalogue() {
   )
   if (canonical.size === 0) {
     failures.push(
-      '`stripe-audit --list-rules --output json` produced no rule IDs — cannot reconcile docs/rules.md.',
+      '`stripe-audit --list-rules --output json` produced no rule IDs — cannot reconcile the census docs.',
     )
     return
   }
@@ -153,22 +165,24 @@ function checkRuleCatalogue() {
     )
   }
 
-  // Reconcile: the rules.md underscore-token set must EXACTLY equal the rule-ID set
-  // (active ∪ dropped). Markdown link DESTINATIONS are stripped first so evidence
-  // citations like `[verdict](verify-gates/RADAR_SETUP_INTENTS.md)` can't leak
-  // filename tokens into the comparison — link TEXT still counts.
-  const doc = readFileSync(RULES_MD, 'utf8').replace(/\]\([^)]*\)/g, ']()')
-  const inDoc = new Set(doc.match(RULE_ID) ?? [])
-  const missing = [...canonical].filter((id) => !inDoc.has(id))
-  const extra = [...inDoc].filter((id) => !canonical.has(id))
-  if (missing.length > 0) {
-    failures.push(`docs/rules.md is missing rule ID(s): ${missing.sort().join(', ')}.`)
-  }
-  if (extra.length > 0) {
-    failures.push(
-      `docs/rules.md has SCREAMING_SNAKE token(s) that aren't rule IDs: ${extra.sort().join(', ')} ` +
-        `— a typo'd/renamed rule ID, or all-caps prose (rewrite it lowercase).`,
-    )
+  for (const { path, name } of docs) {
+    // Reconcile: the doc's underscore-token set must EXACTLY equal the rule-ID set
+    // (active ∪ dropped). Markdown link DESTINATIONS are stripped first so evidence
+    // citations like `[verdict](verify-gates/RADAR_SETUP_INTENTS.md)` can't leak
+    // filename tokens into the comparison — link TEXT still counts.
+    const doc = readFileSync(path, 'utf8').replace(/\]\([^)]*\)/g, ']()')
+    const inDoc = new Set(doc.match(RULE_ID) ?? [])
+    const missing = [...canonical].filter((id) => !inDoc.has(id))
+    const extra = [...inDoc].filter((id) => !canonical.has(id))
+    if (missing.length > 0) {
+      failures.push(`${name} is missing rule ID(s): ${missing.sort().join(', ')}.`)
+    }
+    if (extra.length > 0) {
+      failures.push(
+        `${name} has SCREAMING_SNAKE token(s) that aren't rule IDs: ${extra.sort().join(', ')} ` +
+          `— a typo'd/renamed rule ID, or all-caps prose (rewrite it lowercase).`,
+      )
+    }
   }
 }
 
@@ -184,5 +198,6 @@ if (failures.length > 0) {
   process.exit(1)
 }
 console.log(
-  '✓ docs in sync — demo.svg matches --demo, API-version literals canonical, rules.md ↔ --list-rules reconciled.',
+  '✓ docs in sync — demo.svg matches --demo, API-version literals canonical, ' +
+    `${CENSUS_DOCS.map((d) => d.name).join(' + ')} ↔ --list-rules reconciled.`,
 )

@@ -5,6 +5,67 @@ All notable changes to **stripe-audit** are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-07-29
+
+Rule-catalog re-grounding: **43 rules** (35 `base` + 8 `deep`), up from 40. Three
+new subscription-health rules, richer coupon findings, and a dropped registry
+that now explains itself. Still read-only — it **never writes to Stripe**. No
+breaking changes; no new key permissions (every new rule reads the existing
+Subscriptions deep scope).
+
+### Added
+
+- **`TRIAL_WITHOUT_PAYMENT_COLLECTION`** (`medium`, `billing`, `deep`) — flags
+  trialing subscriptions whose `trial_settings.end_behavior.missing_payment_method`
+  is `cancel` or `pause`. Those trials end with no invoice raised: the
+  subscription is silently canceled or paused, so there is no failed payment, no
+  dunning, and nothing for revenue recovery to retry. **This rule was previously
+  listed as impossible to build** — see Changed.
+- **`SUBSCRIPTION_COLLECTION_PAUSED`** (`medium`, `billing`, `deep`) — flags
+  subscriptions carrying `pause_collection`. Stripe leaves the status unchanged
+  while collection is paused, so a paused subscription still reads `active` in
+  the Dashboard and in every status-based view. A pause with no `resumes_at`
+  runs until someone unsets it by hand.
+- **`SUBSCRIPTIONS_PAST_DUE_ACCUMULATING`** (`low`, `billing`, `deep`) — reports
+  subscriptions in `past_due` / `unpaid`. Deliberately advisory: it points at
+  the retry configuration to verify rather than asserting a misconfiguration,
+  because the retry policy is Dashboard-only and not readable by this audit.
+- **Coupon blast radius.** `FOREVER_COUPON_STILL_VALID` findings now state
+  whether the coupon applies to ALL products or is scoped to N, read from
+  `applies_to.products`.
+- **`--list-rules` explains every drop.** Each dropped rule now shows a
+  **category** — `api-gap` (only a Stripe API change moves it), `scope-gated`
+  (adding a read region moves it), or `low-value` — plus, where one exists, the
+  condition that would make it worth revisiting.
+
+### Changed
+
+- **A dropped rule shipped instead.** `TRIAL_WITHOUT_PAYMENT_COLLECTION` had
+  been listed as dropped with the reason "the trial payment-collection setting
+  is not readable via the API". That was wrong: the field is a plain enum on the
+  subscription object the audit already fetches. It is now an active rule
+  (`docs/verify-gates/TRIAL_END_BEHAVIOR.md`).
+- **`COUPON_FOREVER_ON_ALL_PRICES`'s reason was wrong too.** It claimed no
+  coupon-to-price linkage exists. Product-level linkage does exist
+  (`applies_to.products`); price-level does not. It stays dropped — but as
+  `low-value`, because `FOREVER_COUPON_STILL_VALID` now reports that blast
+  radius already.
+- **The dropped registry is re-grounded at 14 entries**, each carrying an
+  `evidence` pointer to the specific Stripe documentation page behind it rather
+  than a generic reference. Two entries tracked only in prose
+  (`STRIPE_VERSION_ECHO`, `INVOICE_WINDOW_NOT_USED`) are now in the registry.
+- `CUSTOMER_DEFAULT_CURRENCY_MISSING` is categorized `low-value`, not an API
+  gap: `account.default_currency` is non-nullable, so the condition it would
+  flag cannot occur.
+
+### Fixed
+
+- **COVERAGE.md is now guarded against census drift.** `npm run check:docs`
+  gained Check D, which reconciles COVERAGE's rule-ID set against the live
+  registry in both directions. Nothing previously checked that surface, which is
+  how a rule listed in the coverage census while absent from the shipped
+  registry survived two weeks and a release.
+
 ## [0.2.3] — 2026-07-14
 
 Security patch for the Markdown reporter, plus a version-reporting fix. No

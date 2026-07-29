@@ -60,15 +60,15 @@
     "defaultTaxBehavior": "exclusive"
   },
   "subscriptionSummary": {
-    "total": 2,
+    "total": 12,
     "byStatus": {
-      "active": 2
+      "active": 12
     },
     "byBillingMode": {
-      "flexible": 2
+      "flexible": 12
     },
     "byTrialEndBehavior": {},
-    "pausedCollectionCount": 0
+    "pausedCollectionCount": 2
   },
   "meters": [
     {
@@ -99,19 +99,6 @@
       "duration": "once",
       "valid": true,
       "appliesToProducts": null
-    },
-    {
-      "id": "co_eternal",
-      "name": "ETERNAL20",
-      "percentOff": 20.0,
-      "amountOff": null,
-      "currency": null,
-      "duration": "forever",
-      "valid": true,
-      "appliesToProducts": [
-        "prod_pro",
-        "prod_team"
-      ]
     }
   ],
   "scopeProbe": [
@@ -154,11 +141,11 @@
   ],
   "truncated": [],
   "_meta": {
-    "description": "Deep account with a still-valid forever-duration coupon — triggers FOREVER_COUPON_STILL_VALID only.",
+    "description": "Deep account with 2 of 12 subscriptions carrying pause_collection - every one of them still reads status=active, so no status-based check can see them. Triggers SUBSCRIPTION_COLLECTION_PAUSED only.",
     "capturedAt": "2026-06-24T00:00:00Z",
     "capturedApiVersion": "2026-06-24.dahlia",
     "expectedRules": [
-      "FOREVER_COUPON_STILL_VALID"
+      "SUBSCRIPTION_COLLECTION_PAUSED"
     ],
     "expectedSeverities": [
       "medium"

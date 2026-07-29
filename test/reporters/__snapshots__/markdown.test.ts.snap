@@ -299,6 +299,9 @@ The audit key could not read: tax. Rules over those regions were skipped, so thi
 ## Skipped rules
 
 - \`BILLING_MODE_NOT_MIGRATED\` — requires-deep
+- \`TRIAL_WITHOUT_PAYMENT_COLLECTION\` — requires-deep
+- \`SUBSCRIPTIONS_PAST_DUE_ACCUMULATING\` — requires-deep
+- \`SUBSCRIPTION_COLLECTION_PAUSED\` — requires-deep
 - \`METER_ERROR_NOT_MONITORED\` — requires-deep
 - \`HIGH_PERCENT_COUPON\` — requires-deep
 - \`HIGH_AMOUNT_COUPON\` — requires-deep

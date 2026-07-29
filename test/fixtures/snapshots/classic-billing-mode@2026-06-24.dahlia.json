@@ -67,7 +67,9 @@
     "byBillingMode": {
       "classic": 1,
       "flexible": 2
-    }
+    },
+    "byTrialEndBehavior": {},
+    "pausedCollectionCount": 0
   },
   "meters": [
     {
@@ -96,7 +98,8 @@
       "amountOff": null,
       "currency": null,
       "duration": "once",
-      "valid": true
+      "valid": true,
+      "appliesToProducts": null
     }
   ],
   "scopeProbe": [

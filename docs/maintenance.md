@@ -109,7 +109,7 @@ only after a one-time manual upload.
 
 - **Source of truth:** `assets/social-preview.png` — a 1280×640, ≤1 MB PNG,
   committed to the repo and shipped to the public mirror via the
-  `export-public.sh` allowlist (`# community/discoverability (C16)` group).
+  `export-public.sh` allowlist (its community/discoverability group).
 - **Manual step (one-time, per public repo):** **Settings → Social preview →**
   upload `assets/social-preview.png`. This is a repo-*settings* action; the
   `sync-public.sh` mirror never touches settings, so it must be done by hand.

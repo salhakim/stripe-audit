@@ -1,0 +1,5 @@
+{
+  "expectedRuleIds": [
+    "SUBSCRIPTIONS_PAST_DUE_ACCUMULATING"
+  ]
+}

@@ -53,9 +53,9 @@ Critical (1)
 
 ## What it checks
 
-stripe-audit ships **40 read-only rules** across webhooks, billing/customer
+stripe-audit ships **43 read-only rules** across webhooks, billing/customer
 portal, pricing, tax configuration, and account health — 35 run on every audit,
-5 more under opt-in `--deep`. Each finding names the exact misconfiguration and
+8 more under opt-in `--deep`. Each finding names the exact misconfiguration and
 the one action that fixes it — the same what / why / how-to-fix shape you get
 from a good linter.
 

@@ -41,6 +41,10 @@ const FAKE_WEBHOOK = 'whsec_' + 'Q'.repeat(40)
 // assembled so this shipped file cannot trip the guard on itself.
 const FAKE_STORY_ID = ['C', '11-', '010'].join('')
 const FAKE_OBS_REF = 'obs' + '-' + '42'
+// A STANDALONE camp ID above the range an earlier revision of the guard capped at.
+// That ceiling was the live blind spot: ids past it passed silently and reached the
+// public mirror, so the range is now unbounded and this pins it.
+const FAKE_HIGH_CAMP_ID = 'C' + '87'
 
 function sh(script: string, args: string[], env?: NodeJS.ProcessEnv) {
   return spawnSync('bash', [script, ...args], {
@@ -162,6 +166,15 @@ describe.runIf(TOOLING_PRESENT)('verify-export-clean.sh — each guard fails clo
     writeFileSync(join(probe, 'docs', 'note.md'), `see ${FAKE_STORY_ID} and ${FAKE_OBS_REF}\n`)
     const r = sh(VERIFY, [probe])
     expect(r.status).not.toBe(0)
+    expect(r.stderr).toContain('MISSION-VOCABULARY')
+  })
+
+  it('MISSION-VOCABULARY catches a STANDALONE camp ID with no upper bound', () => {
+    const probe = freshDir('c7-highid-')
+    mkdirSync(join(probe, 'src'), { recursive: true })
+    writeFileSync(join(probe, 'src', 'x.ts'), `// the ${FAKE_HIGH_CAMP_ID} config knobs\n`)
+    const r = sh(VERIFY, [probe])
+    expect(r.status, 'a standalone camp ID above the old ceiling must be refused').not.toBe(0)
     expect(r.stderr).toContain('MISSION-VOCABULARY')
   })
 
